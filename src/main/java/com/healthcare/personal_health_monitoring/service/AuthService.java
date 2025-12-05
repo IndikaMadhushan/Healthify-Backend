@@ -1,13 +1,10 @@
 package com.healthcare.personal_health_monitoring.service;
 
-import com.healthcare.personal_health_monitoring.dto.AuthRequest;
-import com.healthcare.personal_health_monitoring.dto.AuthResponse;
 import com.healthcare.personal_health_monitoring.entity.User;
 import com.healthcare.personal_health_monitoring.repository.UserRepository;
-import com.healthcare.personal_health_monitoring.security.JWTUtil;
 
+import com.healthcare.personal_health_monitoring.security.JWTUtil;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -15,23 +12,18 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AuthService {
 
-    private final AuthenticationManager authManager;
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final UserRepository repo;
+    private final PasswordEncoder encoder;
     private final JWTUtil jwtUtil;
 
-    public AuthResponse login(AuthRequest request) {
-        authManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-        );
+    public String login(String email, String password){
 
-        String token = jwtUtil.generateToken(request.getEmail());
-        return new AuthResponse(token);
-    }
+        User user = repo.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-    public String register(User user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        userRepository.save(user);
-        return "User registered successfully!";
+        if(!encoder.matches(password, user.getPassword()))
+            throw new RuntimeException("Invalid password");
+
+        return jwtUtil.generateToken(user.getEmail(), user.getRole().name());
     }
 }
