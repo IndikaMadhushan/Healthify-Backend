@@ -32,7 +32,7 @@ public class User {
     private String password;
 
     @Enumerated(EnumType.STRING)
-    private String role;
+    private UserRole role;
 
     private String phone;
 
