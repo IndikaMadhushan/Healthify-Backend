@@ -30,6 +30,7 @@ public class SecurityConfig {
                 .requestMatchers("/auth/**").permitAll()
                 .requestMatchers("/doctor/**").hasRole("DOCTOR")
                 .requestMatchers("/patient/**").hasRole("PATIENT")
+                .requestMatchers("/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
         );
 
