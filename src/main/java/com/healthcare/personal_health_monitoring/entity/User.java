@@ -2,82 +2,51 @@ package com.healthcare.personal_health_monitoring.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Set;
 
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 @Table(name = "users")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Inheritance(strategy = InheritanceType.JOINED)
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Account info
-    @Column(nullable = false)
+    @Column(nullable=false)
     private String fullName;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable=false, unique=true)
     private String email;
 
-    @Column(nullable = false)
+    @Column(nullable=false)
     private String password;
 
-    @Enumerated(EnumType.STRING)
-    private UserRole role;
+    @Column(nullable=false)
+    private String role; // PATIENT, DOCTOR, ADMIN
 
+    @Column(nullable=true)
+    private String nic;
+
+    @Column(nullable=true)
+    private String postalCode;
+
+
+    @Column(nullable=true)
     private String phone;
 
-    // Basic health info
-    private String gender;
-    private LocalDate dateOfBirth;
-    private String bloodGroup;
-
-    private Double height;   // cm
-    private Double weight;   // kg
-
-    // Many-to-Many: User ↔ Disease
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "user_diseases",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "disease_id")
-    )
-    private Set<Disease> diseases;
-
-    // Many-to-Many: User ↔ Allergy
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "user_allergies",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "allergy_id")
-    )
-    private Set<Allergy> allergies;
-
-    // Contact & Location
-    private String address;
-    private String city;
+    @Column(nullable=true)
     private String district;
+
+    @Column(nullable=true)
     private String province;
+
+    @Column(nullable=true)
     private String country;
 
-    // Emergency Contact
-    private String emergencyContactName;
-    private String emergencyContactPhone;
-    private String emergencyContactRelationship;
-
-    // System fields
-    @CreationTimestamp
-    private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    private LocalDateTime updatedAt;
+    @Column(nullable=false)
+    private LocalDateTime createdAt = LocalDateTime.now();
 }

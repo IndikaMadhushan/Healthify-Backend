@@ -1,4 +1,4 @@
 package com.healthcare.personal_health_monitoring.entity;
 
-public class Suregery {
+public class Admin {
 }
