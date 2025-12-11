@@ -6,6 +6,6 @@ import java.util.Optional;
 
 public interface AdminService {
     Admin saveAdmin(Admin admin);
-    Optional<Admin> getAdminByUsername(String username);
+    Optional<Admin> getAdminByEmail(String email);
     void changePassword(Long id, String newPassword);
 }
