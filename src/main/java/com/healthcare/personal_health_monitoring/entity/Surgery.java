@@ -3,14 +3,20 @@ package com.healthcare.personal_health_monitoring.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
+
+
 @Entity
-@Table(name="allergies")
+@Table(name="surgeries")
 @Data @AllArgsConstructor @NoArgsConstructor
-public class Allergy {
+public class Surgery {
     @Id @GeneratedValue(strategy=GenerationType.IDENTITY)
     private Long id;
-    private String name;
 
-    @Enumerated(EnumType.STRING)
-    private AllergyType type; // DRUG, NON_DRUG
+    @ManyToOne
+    private Patient patient;
+
+    private String description;
+
+    private LocalDate surgeryDate;
 }
