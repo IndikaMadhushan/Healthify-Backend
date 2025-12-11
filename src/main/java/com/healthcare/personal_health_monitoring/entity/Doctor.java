@@ -17,6 +17,8 @@ public class Doctor extends User {
     private String licenseNumber;
 
     private LocalDate dateOfBirth;
+    @Column(name = "age")
+    private Integer age;
 
     private String photoUrl;
 
@@ -27,11 +29,4 @@ public class Doctor extends User {
     }
 
 
-    @Transient
-    public Integer getAge() {
-        if (dateOfBirth == null) return null;
-        return LocalDate.now().getYear() - dateOfBirth.getYear();
-
-
-    }
 }

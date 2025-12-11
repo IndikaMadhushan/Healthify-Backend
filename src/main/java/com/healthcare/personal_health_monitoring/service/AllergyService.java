@@ -1,9 +1,12 @@
-//package com.healthcare.personal_health_monitoring.service;
-//
-//import com.healthcare.personal_health_monitoring.dto.AllergyDTO;
-//import java.util.List;
-//
-//public interface AllergyService {
-//    AllergyDTO create(String name);
-//    List<AllergyDTO> listAll();
-//}
+package com.healthcare.personal_health_monitoring.service;
+
+import com.healthcare.personal_health_monitoring.entity.Allergy;
+
+import java.util.List;
+import java.util.Optional;
+
+public interface AllergyService {
+    Allergy saveAllergy(Allergy allergy);
+    Optional<Allergy> getAllergyById(Long id);
+    List<Allergy> getAllAllergies();
+}

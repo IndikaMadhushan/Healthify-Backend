@@ -47,6 +47,8 @@ public class User {
     @Column(nullable=true)
     private String country;
 
+    private boolean enabled = true;
+
     @Column(nullable=false)
     private LocalDateTime createdAt = LocalDateTime.now();
 }

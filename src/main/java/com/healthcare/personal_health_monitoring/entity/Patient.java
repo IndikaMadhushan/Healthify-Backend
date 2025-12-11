@@ -13,6 +13,8 @@ import java.util.List;
 public class Patient extends User {
 
     private LocalDate dateOfBirth;
+    @Column(name = "age")
+    private Integer age;
     private String gender;
     private Double height;
     private Double weight;
@@ -76,12 +78,4 @@ public class Patient extends User {
     @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL)
     private List<Surgery> surgeries;
 
-
-    @Transient
-    public Integer getAge() {
-        if (dateOfBirth == null) return null;
-        return LocalDate.now().getYear() - dateOfBirth.getYear();
-
-
-    }
 }
