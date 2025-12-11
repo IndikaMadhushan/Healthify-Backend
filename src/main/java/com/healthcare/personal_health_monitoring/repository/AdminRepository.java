@@ -1,12 +1,12 @@
 package com.healthcare.personal_health_monitoring.repository;
 
-import com.healthcare.personal_health_monitoring.entity.Allergy;
+import com.healthcare.personal_health_monitoring.entity.Admin;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
 @Repository
-public interface AllergyRepository extends JpaRepository<Allergy, Long> {
-    Optional<Allergy> findByAllergyName(String allergyName);
+public interface AdminRepository extends JpaRepository<Admin, Long> {
+    Optional<Admin> findByUsername(String username);
 }
