@@ -3,6 +3,7 @@ package com.healthcare.personal_health_monitoring.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -13,15 +14,19 @@ import java.util.List;
 public class Patient extends User {
 
     private LocalDate dateOfBirth;
+
     @Column(name = "age")
     private Integer age;
+
     private String gender;
     private Double height;
     private Double weight;
     private String bloodType;
     private String postalCode;
 
-    // Family background
+    // ============================
+    // FAMILY BACKGROUND
+    // ============================
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "name", column = @Column(name = "father_name")),
@@ -48,7 +53,9 @@ public class Patient extends User {
     @CollectionTable(name = "siblings", joinColumns = @JoinColumn(name = "patient_id"))
     private List<FamilyMember> siblings;
 
-    // Emergency contacts
+    // ============================
+    // EMERGENCY CONTACTS
+    // ============================
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "name", column = @Column(name = "primary_contact_name")),
@@ -65,7 +72,9 @@ public class Patient extends User {
     })
     private EmergencyContact secondaryContact;
 
-    // Patient related entities
+    // ============================
+    // MAPPED CHILD TABLES
+    // ============================
     @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL)
     private List<PatientDisease> diseases;
 
@@ -78,4 +87,5 @@ public class Patient extends User {
     @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL)
     private List<Surgery> surgeries;
 
+    private LocalDateTime updatedAt;
 }

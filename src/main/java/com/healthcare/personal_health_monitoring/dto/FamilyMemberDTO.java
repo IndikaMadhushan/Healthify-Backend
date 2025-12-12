@@ -10,11 +10,11 @@ import java.time.LocalDate;
 public class FamilyMemberDTO {
     private String name;
 
-    @Past(message = "dob must be a date in the past")
+    @Past(message = "dob must be in the past")
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate dob;
 
     private Boolean alive;
     private String causeOfDeath;
-    private String diseases; // comma separated or JSON string
+    private String diseases; // comma-separated or JSON
 }
