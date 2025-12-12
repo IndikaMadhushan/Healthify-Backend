@@ -26,7 +26,7 @@ public class User {
     private String password;
 
     @Column(nullable=false)
-    private String role; // PATIENT, DOCTOR, ADMIN
+    private UserRole role; // PATIENT, DOCTOR, ADMIN
 
     @Column(nullable=true)
     private String nic;
