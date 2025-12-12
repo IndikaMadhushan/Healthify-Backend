@@ -18,6 +18,11 @@ public class CustomUserDetails implements UserDetails {
         this.user = user;
     }
 
+//    Critical: getAuthorities() adds ROLE_ prefix
+//
+//    Spring Security requires this prefix for role-based security
+//    ROLE_PATIENT, ROLE_DOCTOR, ROLE_ADMIN
+//    This allows @PreAuthorize("hasRole('PATIENT')") to work
     @Override
     public Collection<SimpleGrantedAuthority> getAuthorities() {
         // ensure role mapping uses ROLE_ prefix

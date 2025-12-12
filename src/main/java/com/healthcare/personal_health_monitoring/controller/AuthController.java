@@ -1,32 +1,29 @@
-//package com.healthcare.personal_health_monitoring.controller;
-//
-//import com.healthcare.personal_health_monitoring.entity.User;
-//import com.healthcare.personal_health_monitoring.repository.UserRepository;
-//import com.healthcare.personal_health_monitoring.service.AuthService;
-//import lombok.RequiredArgsConstructor;
-//import org.springframework.security.crypto.password.PasswordEncoder;
-//import org.springframework.web.bind.annotation.*;
-//
-//@RestController
-//@RequestMapping("/auth")
-//@RequiredArgsConstructor
-////public class AuthController {
-//
-//    private final AuthService service;
-//    private final UserRepository repo;
-//    private final PasswordEncoder encoder;
-//
-//    @PostMapping("/register")
-//    public String register(@RequestBody User user){
-//        user.setPassword(encoder.encode(user.getPassword()));
-//        repo.save(user);
-//        return "Registered";
-//    }
-//
-//    @PostMapping("/login")
-//    public String login(@RequestBody LoginRequest req){
-//        return service.login(req.email(), req.password());
-//    }
-//}
-//
-//record LoginRequest(String email, String password) {}
+package com.healthcare.personal_health_monitoring.controller;
+
+import com.healthcare.personal_health_monitoring.dto.AuthResponse;
+import com.healthcare.personal_health_monitoring.dto.LoginRequest;
+import com.healthcare.personal_health_monitoring.dto.RegisterRequest;
+import com.healthcare.personal_health_monitoring.service.AuthService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/auth")
+@RequiredArgsConstructor
+public class AuthController {
+
+    private final AuthService authService;
+
+    @PostMapping("/register")
+    public ResponseEntity<String> register(@RequestBody RegisterRequest req) {
+        authService.register(req);
+        return ResponseEntity.ok("Registered. If you registered as a doctor account will remain inactive until admin approval.");
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest req) {
+        AuthResponse resp = authService.login(req.email(), req.password());
+        return ResponseEntity.ok(resp);
+    }
+}
