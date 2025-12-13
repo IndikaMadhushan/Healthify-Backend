@@ -6,21 +6,27 @@ import lombok.*;
 import java.time.LocalDate;
 
 @Entity
-@Table(name="notes")
-@Data @AllArgsConstructor @NoArgsConstructor
+@Table(name = "notes")
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class Note {
-    @Id @GeneratedValue(strategy=GenerationType.IDENTITY)
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(optional = false)
     private Patient patient;
 
-    @ManyToOne
+    @ManyToOne(optional = false)
     private Doctor doctor;
 
-    private LocalDate date;
+    private LocalDate visitDate;
 
+    @Column(length = 2000)
     private String description;
 
-    private String prescriptionUrl; // cloud URL
+    // Can be prescription OR report (PDF / image)
+    private String fileUrl;   // cloud/local storage URL
 }
