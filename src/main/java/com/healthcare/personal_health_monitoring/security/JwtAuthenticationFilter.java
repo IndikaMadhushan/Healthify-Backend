@@ -15,15 +15,27 @@ import java.io.IOException;
 
 @Component
 @RequiredArgsConstructor
-public class JWTAuthenticationFilter extends OncePerRequestFilter {
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JWTUtil jwtUtil;
     private final CustomUserDetailsService userDetailsService;
+
+
+
+
+
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
+
+        if (request.getServletPath().startsWith("/api/auth")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+
 
         String header = request.getHeader("Authorization");
         if (header == null || !header.startsWith("Bearer ")) {
@@ -46,5 +58,7 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+        return;
+
     }
 }

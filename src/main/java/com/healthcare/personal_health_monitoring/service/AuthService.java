@@ -27,49 +27,74 @@ public class AuthService {
     private final JWTUtil jwtUtil;
 
     /**
-     * Registers a new user. For role DOCTOR we mark as enabled=false (needs admin approval).
-     * For PATIENT register as enabled=true.
+     * Registers a new user.
+     *
+     * - PATIENT → enabled immediately
+     * - DOCTOR  → disabled until admin approval
+     * - ADMIN   → allowed but should normally be restricted
      */
     public void register(RegisterRequest req) {
+
+        // 🔒 Prevent duplicate emails
         if (userRepository.findByEmail(req.getEmail()).isPresent()) {
             throw new IllegalArgumentException("Email already in use");
         }
 
         User user = new User();
+
+        // ✅ REQUIRED FIELD (fixes your 500 error)
         user.setFullName(req.getFullName());
+
         user.setEmail(req.getEmail());
         user.setNic(req.getNic());
+
+        // 🔐 Always store encoded passwords
         user.setPassword(passwordEncoder.encode(req.getPassword()));
 
-        // parse role
+        // 🎯 Default role = PATIENT
         UserRole role = UserRole.PATIENT;
+        user.setEnabled(true); // patients enabled by default
+
+        // 🔁 Role handling
         if ("DOCTOR".equalsIgnoreCase(req.getRole())) {
             role = UserRole.DOCTOR;
-            user.setEnabled(false); // admin will verify and enable
-        } else if ("ADMIN".equalsIgnoreCase(req.getRole())) {
-            role = UserRole.ADMIN; // careful: admin signup normally should be controlled
+            user.setEnabled(false); // admin approval needed
         }
+        else if ("ADMIN".equalsIgnoreCase(req.getRole())) {
+            role = UserRole.ADMIN;
+            // ⚠ In real systems, admin registration should be restricted
+        }
+
         user.setRole(role);
 
+        // 💾 Persist user
         userRepository.save(user);
     }
 
     /**
-     * Log in and return JWT token string packaged in AuthResponse
+     * Login user and generate JWT token.
      */
     public AuthResponse login(String email, String password) {
+
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Invalid credentials"));
 
+        // 🔐 Password verification
         if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new RuntimeException("Invalid credentials");
         }
 
+        // 🚫 Block disabled accounts
         if (!user.isEnabled()) {
             throw new RuntimeException("Account not enabled. Contact admin.");
         }
 
-        String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
+        // 🎟 Generate JWT
+        String token = jwtUtil.generateToken(
+                user.getEmail(),
+                user.getRole().name()
+        );
+
         return new AuthResponse(token);
     }
 }
