@@ -134,7 +134,7 @@ public class PatientServiceImpl implements PatientService {
 
     @Override
     public PatientResponse getPatientByEmail(String email) {
-        Patient p = patientRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("Patient not found with email: " + email));
+        Patient p = patientRepository.findByUserEmail(email).orElseThrow(() -> new IllegalArgumentException("Patient not found with email: " + email));
         return PatientMapper.toResponse(p);
     }
 

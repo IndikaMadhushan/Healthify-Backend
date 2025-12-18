@@ -9,16 +9,11 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Entity
 @Table(name = "users")
-@Inheritance(strategy = InheritanceType.JOINED)
-@DiscriminatorColumn(name = "user_type")
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(nullable=false)
-    private String fullName;
 
     @Column(nullable=false, unique=true)
     private String email;
@@ -26,30 +21,11 @@ public class User {
     @Column(nullable=false)
     private String password;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable=false)
     private UserRole role; // PATIENT, DOCTOR, ADMIN
-
-    @Column(nullable=true)
-    private String nic;
-
-    @Column(nullable=true)
-    private String postalCode;
-
-
-    @Column(nullable=true)
-    private String phone;
-
-    @Column(nullable=true)
-    private String district;
-
-    @Column(nullable=true)
-    private String province;
-
-    @Column(nullable=true)
-    private String country;
-
     private boolean enabled = true;
 
-    @Column(nullable=false)
+    @Column(nullable=false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 }

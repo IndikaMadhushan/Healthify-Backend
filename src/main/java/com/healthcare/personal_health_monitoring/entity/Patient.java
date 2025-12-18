@@ -11,10 +11,46 @@ import java.util.List;
 @NoArgsConstructor
 @Entity
 @Table(name = "patients")
-public class Patient extends User {
+public class Patient  {
 
+    @Id
+    private long id;
+
+    @OneToOne
+    @MapsId //tells Hibernate to use the User's ID as the Patient's ID
+    @JoinColumn(name = "id")
+    private User user;
+
+
+
+
+    @Column(nullable=false)
+    private String fullName;
+
+    @Column(nullable=true)
+    private String nic;
+
+    @Column(nullable=true)
+    private String postalCode;
+
+    public void setEmail(String email){
+        user.setEmail(email);
+    }
+
+    public String getEmail(){
+        return user.getEmail();
+    }
+
+
+    @Column(nullable=true)
+    private String phone;
+    @Column(nullable=true)
+    private String district;
+    @Column(nullable=true)
+    private String province;
+    @Column(nullable=true)
+    private String country;
     private LocalDate dateOfBirth;
-
     @Column(name = "age")
     private Integer age;
 
@@ -22,7 +58,7 @@ public class Patient extends User {
     private Double height;
     private Double weight;
     private String bloodType;
-    private String postalCode;
+
 
     // ============================
     // FAMILY BACKGROUND
@@ -86,6 +122,8 @@ public class Patient extends User {
 
     @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL)
     private List<Surgery> surgeries;
+
+
 
     private LocalDateTime updatedAt;
 }

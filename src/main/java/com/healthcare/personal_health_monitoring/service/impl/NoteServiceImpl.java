@@ -62,9 +62,12 @@ public class NoteServiceImpl implements NoteService {
                     .orElseThrow(() -> new RuntimeException("Patient not found"));
 
             // Get currently logged-in doctor
-            Doctor doctor = (Doctor) SecurityContextHolder.getContext()
-                    .getAuthentication()
-                    .getPrincipal();
+            String email = SecurityContextHolder.getContext()
+                    .getAuthentication().getName();
+
+            Doctor doctor = doctorRepository.findByUserEmail(email)
+                    .orElseThrow(() -> new RuntimeException("Doctor not found"));
+
 
             Note note = new Note();
             note.setPatient(patient);

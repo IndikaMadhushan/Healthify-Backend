@@ -8,10 +8,12 @@ import com.healthcare.personal_health_monitoring.entity.UserRole;
 import com.healthcare.personal_health_monitoring.repository.PatientRepository;
 import com.healthcare.personal_health_monitoring.repository.UserRepository;
 import com.healthcare.personal_health_monitoring.security.JWTUtil;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 //Note: User here is the generic user entity
@@ -38,6 +40,7 @@ public class AuthService {
      * - DOCTOR  → disabled until admin approval
      * - ADMIN   → allowed but should normally be restricted
      */
+    @Transactional
     public void register(RegisterRequest req) {
 
         // Prevent duplicate emails
@@ -46,17 +49,8 @@ public class AuthService {
         }
 
         User user = new User();
-
-        // ✅ REQUIRED FIELD (fixes your 500 error)
-        user.setFullName(req.getFullName());
-
         user.setEmail(req.getEmail());
-        user.setNic(req.getNic());
-
-        // 🔐 Always store encoded passwords
         user.setPassword(passwordEncoder.encode(req.getPassword()));
-
-        // 🎯 Default role = PATIENT
         UserRole role = UserRole.PATIENT;
         user.setEnabled(true); // patients enabled by default
 
@@ -67,32 +61,21 @@ public class AuthService {
         }
         else if ("ADMIN".equalsIgnoreCase(req.getRole())) {
             role = UserRole.ADMIN;
-            // ⚠ In real systems, admin registration should be restricted
         }
+
+        // the patient linked to the user
+        Patient patient = new Patient();
+        patient.setUser(user);
+        patient.setFullName(req.getFullName());
+        patient.setPhone(req.getPhoneNumber());
+        patient.setDateOfBirth(req.getDateOfBirth());
+        patient.setUpdatedAt(LocalDateTime.now());
 
         user.setRole(role);
 
-        // 💾 Persist user
+        //  Persist user
         userRepository.save(user);
-
-        if (role == UserRole.PATIENT) {
-
-            Patient patient = new Patient();
-
-            // fields from User
-            patient.setFullName(req.getFullName());
-            patient.setEmail(req.getEmail());
-            patient.setNic(req.getNic());
-            patient.setPassword(passwordEncoder.encode(req.getPassword()));
-            patient.setRole(UserRole.PATIENT);
-            patient.setEnabled(true);
-
-//            // optional patient-specific fields
-//            patient.setDateOfBirth(req.getDateOfBirth());
-
-            patientRepository.save(patient);
-        }
-
+        patientRepository.save(patient);
 
     }
 

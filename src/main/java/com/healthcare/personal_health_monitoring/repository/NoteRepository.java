@@ -12,6 +12,6 @@ public interface NoteRepository extends JpaRepository<Note, Long> {
 
     List<Note> findByPatientIdAndVisitDateBetween(Long patientId, LocalDate startDate, LocalDate endDate);
     List<Note> findByPatientId(Long patientId);
-    Optional<Patient> findByEmail(String email);
+   // Optional<Patient> findByEmail(String email);
 
 }

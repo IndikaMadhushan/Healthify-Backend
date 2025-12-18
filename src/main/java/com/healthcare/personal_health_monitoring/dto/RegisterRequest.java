@@ -2,6 +2,7 @@ package com.healthcare.personal_health_monitoring.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 
 import java.time.LocalDate;
@@ -18,16 +19,31 @@ public class RegisterRequest {
     private String password;
 
     @NotBlank(message = "Role is required")
+    @NotBlank(message = "NIC is required")
     private String role; // "PATIENT" or "DOCTOR"
     private String nic;
     // add other fields you want to accept at registration (phone, postalCode, etc.)
-    @NotBlank(message = "Date Of Birth is required")
+    @NotNull(message = "Date Of Birth is required")
     private LocalDate dateOfBirth;
     @NotBlank(message = "Phone number is required")
     @Pattern(regexp = "^\\d{10}$", message = "Phone number must be exactly 10 digits")
     private String phoneNumber;
 
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
 
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    public  LocalDate getDateOfBirth() {
+        return dateOfBirth;
+    }
+
+    public void setDateOfBirth( LocalDate dateOfBirth) {
+        this.dateOfBirth = dateOfBirth;
+    }
 
     // getters and setters
     public String getFullName() { return fullName; }
