@@ -2,13 +2,17 @@ package com.healthcare.personal_health_monitoring.service;
 
 import com.healthcare.personal_health_monitoring.dto.AuthResponse;
 import com.healthcare.personal_health_monitoring.dto.RegisterRequest;
+import com.healthcare.personal_health_monitoring.entity.Patient;
 import com.healthcare.personal_health_monitoring.entity.User;
 import com.healthcare.personal_health_monitoring.entity.UserRole;
+import com.healthcare.personal_health_monitoring.repository.PatientRepository;
 import com.healthcare.personal_health_monitoring.repository.UserRepository;
 import com.healthcare.personal_health_monitoring.security.JWTUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 //Note: User here is the generic user entity
 // (not Patient/Doctor typed). If you use subclassed
@@ -23,6 +27,7 @@ import org.springframework.stereotype.Service;
 public class AuthService {
 
     private final UserRepository userRepository;
+    private final PatientRepository patientRepository;
     private final PasswordEncoder passwordEncoder;
     private final JWTUtil jwtUtil;
 
@@ -35,7 +40,7 @@ public class AuthService {
      */
     public void register(RegisterRequest req) {
 
-        // 🔒 Prevent duplicate emails
+        // Prevent duplicate emails
         if (userRepository.findByEmail(req.getEmail()).isPresent()) {
             throw new IllegalArgumentException("Email already in use");
         }
@@ -55,7 +60,7 @@ public class AuthService {
         UserRole role = UserRole.PATIENT;
         user.setEnabled(true); // patients enabled by default
 
-        // 🔁 Role handling
+        //  Role handling
         if ("DOCTOR".equalsIgnoreCase(req.getRole())) {
             role = UserRole.DOCTOR;
             user.setEnabled(false); // admin approval needed
@@ -69,6 +74,26 @@ public class AuthService {
 
         // 💾 Persist user
         userRepository.save(user);
+
+        if (role == UserRole.PATIENT) {
+
+            Patient patient = new Patient();
+
+            // fields from User
+            patient.setFullName(req.getFullName());
+            patient.setEmail(req.getEmail());
+            patient.setNic(req.getNic());
+            patient.setPassword(passwordEncoder.encode(req.getPassword()));
+            patient.setRole(UserRole.PATIENT);
+            patient.setEnabled(true);
+
+//            // optional patient-specific fields
+//            patient.setDateOfBirth(req.getDateOfBirth());
+
+            patientRepository.save(patient);
+        }
+
+
     }
 
     /**
@@ -97,4 +122,28 @@ public class AuthService {
 
         return new AuthResponse(token);
     }
+
+
+    /**
+     * Admin approves a doctor account
+     */
+    public void approveDoctor(Long userId) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (user.getRole() != UserRole.DOCTOR) {
+            throw new RuntimeException("Only doctor accounts can be approved");
+        }
+
+        user.setEnabled(true); // Approve doctor
+        userRepository.save(user);
+    }
+
+    public List<User> getPendingDoctors() {
+        return userRepository.findByRoleAndEnabled(UserRole.DOCTOR, false);
+    }
+
+
+
 }
