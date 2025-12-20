@@ -28,7 +28,7 @@ public class AdminServiceImpl implements AdminService {
     public void changePassword(Long id, String newPassword) {
         Optional<Admin> adminOpt = adminRepository.findById(id);
         adminOpt.ifPresent(admin -> {
-            admin.setPassword(newPassword);
+            admin.getUser().setPassword(newPassword);
             adminRepository.save(admin);
         });
     }

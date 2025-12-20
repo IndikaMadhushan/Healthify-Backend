@@ -12,7 +12,7 @@ public class PatientMapper {
         if (r == null) return null;
         Patient p = new Patient();
         p.setFullName(r.getFullName());
-        p.setEmail(r.getEmail());
+        p.getUser().setEmail(r.getEmail());
         p.setNic(r.getNic());
         p.setDateOfBirth(r.getDateOfBirth());
         p.setGender(r.getGender());

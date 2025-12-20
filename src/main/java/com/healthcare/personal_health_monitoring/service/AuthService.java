@@ -58,9 +58,11 @@ public class AuthService {
         if ("DOCTOR".equalsIgnoreCase(req.getRole())) {
             role = UserRole.DOCTOR;
             user.setEnabled(false); // admin approval needed
+
         }
         else if ("ADMIN".equalsIgnoreCase(req.getRole())) {
             role = UserRole.ADMIN;
+
         }
 
         // the patient linked to the user

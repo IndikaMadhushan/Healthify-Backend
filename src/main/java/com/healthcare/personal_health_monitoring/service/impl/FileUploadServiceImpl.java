@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 
 @Service
 public class FileUploadServiceImpl implements FileUploadService {
@@ -35,7 +36,12 @@ public class FileUploadServiceImpl implements FileUploadService {
             Path destinationFile = rootLocation.resolve(
                     Paths.get(fileName)).normalize().toAbsolutePath();
 
-            Files.copy(file.getInputStream(), destinationFile);
+            Files.copy(
+                    file.getInputStream(),
+                    destinationFile,
+                    StandardCopyOption.REPLACE_EXISTING
+            );
+
 
             return "/uploads/" + fileName;  // URL to store in DB
 
