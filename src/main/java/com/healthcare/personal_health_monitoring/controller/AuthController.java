@@ -1,9 +1,8 @@
 package com.healthcare.personal_health_monitoring.controller;
 
-import com.healthcare.personal_health_monitoring.dto.AuthResponse;
-import com.healthcare.personal_health_monitoring.dto.LoginRequest;
-import com.healthcare.personal_health_monitoring.dto.RegisterRequest;
+import com.healthcare.personal_health_monitoring.dto.*;
 import com.healthcare.personal_health_monitoring.service.AuthService;
+import com.healthcare.personal_health_monitoring.service.impl.AuthServiceImpl;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,13 +15,24 @@ public class AuthController {
 
     private final AuthService authService;
 
-    @PostMapping("/register")
-    public ResponseEntity<String> register(@Valid @RequestBody RegisterRequest req) {
-        authService.register(req);
+
+    @PostMapping("/patient/register")
+    public ResponseEntity<?> registerPatient(@Valid @RequestBody PatientRegisterRequest req) {
+        authService.registerPatient(req);
         return ResponseEntity.ok(
-                "Registered. If you registered as a doctor account will remain inactive until admin approval."
+                "Patient Registerd Successfully"
         );
     }
+
+    @PostMapping("/doctor/register")
+    public ResponseEntity<?> registerDoctor(
+            @Valid @RequestBody  DoctorRegisterRequest req) {
+        authService.registerDoctor(req);
+        return ResponseEntity.ok(
+                "Doctor registered successfully. Await admin approval."
+        );
+
+    };
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest req) {
