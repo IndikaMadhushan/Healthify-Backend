@@ -2,6 +2,7 @@ package com.healthcare.personal_health_monitoring.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 
@@ -17,6 +18,7 @@ public class DoctorRegisterRequest {
     private String fullName;
     @NotBlank(message = "Licence Number is required")
     private String licenseNumber;
+    @Past(message = "dateOfBirth must be in the past")
     @NotNull(message = "Date of Birth is required")
     private LocalDate dateOfBirth;
     @NotBlank(message = "Phone number is required")
