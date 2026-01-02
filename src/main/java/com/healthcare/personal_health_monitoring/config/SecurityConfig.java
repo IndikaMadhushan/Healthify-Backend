@@ -4,6 +4,7 @@ import com.healthcare.personal_health_monitoring.security.JwtAuthenticationFilte
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -28,10 +29,13 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/patients/**").hasRole("PATIENT")
+                        .requestMatchers("/api/patients/**").hasAnyRole("PATIENT", "DOCTOR", "ADMIN")
                         .requestMatchers("/api/doctors/**").hasRole("DOCTOR")
                         .requestMatchers("/api/notes/**").hasRole("DOCTOR")
-                        .requestMatchers("/api/metrics/**").hasRole("PATIENT")
+                        .requestMatchers(HttpMethod.POST, "/api/metrics/**").hasRole("PATIENT")
+                        .requestMatchers(HttpMethod.GET, "/api/metrics/**").hasAnyRole("PATIENT", "DOCTOR")
+
+                       // .requestMatchers("/api/metrics/**").hasRole("PATIENT")
                         .anyRequest().authenticated()
                 )
 
