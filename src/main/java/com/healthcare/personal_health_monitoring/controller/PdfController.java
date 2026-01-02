@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 
 @RestController
-@RequestMapping("/doctor/patients")
+@RequestMapping("/api/doctor/patients")
 @RequiredArgsConstructor
 public class PdfController {
 

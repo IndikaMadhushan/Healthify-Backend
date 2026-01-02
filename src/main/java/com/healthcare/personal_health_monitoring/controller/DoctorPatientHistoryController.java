@@ -10,7 +10,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @RestController
-@RequestMapping("/doctor/patients")
+@RequestMapping("/api/doctor/patients")
 @RequiredArgsConstructor
 public class DoctorPatientHistoryController {
 
