@@ -1,5 +1,6 @@
 package com.healthcare.personal_health_monitoring.controller;
 
+import com.healthcare.personal_health_monitoring.dto.NoteResponse;
 import com.healthcare.personal_health_monitoring.entity.Note;
 import com.healthcare.personal_health_monitoring.service.NoteService;
 import lombok.RequiredArgsConstructor;
@@ -9,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
-@RequestMapping("/api/notes")
+@RequestMapping("/api/doctor/notes")
 @RequiredArgsConstructor
 public class NoteController {
 
@@ -19,13 +20,20 @@ public class NoteController {
             value = "/{patientId}",
              consumes = MediaType.MULTIPART_FORM_DATA_VALUE //if this not here : Spring may not match the request → fallback to static handler.
     )
-    public ResponseEntity<Note> addNote(
+    public ResponseEntity<NoteResponse> addNote(
             @PathVariable Long patientId,
             @RequestParam String description,
             @RequestParam(required = false) MultipartFile file
     ) {
+        Note note = noteService.addNote(patientId, description, file);
+
         return ResponseEntity.ok(
-                noteService.addNote(patientId, description, file)
+                new NoteResponse(
+                        note.getId(),
+                        note.getDescription(),
+                        note.getVisitDate(),
+                        note.getFileUrl()
+                )
         );
     }
 }
