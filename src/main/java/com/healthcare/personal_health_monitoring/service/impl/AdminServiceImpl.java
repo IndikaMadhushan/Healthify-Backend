@@ -21,14 +21,14 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public Optional<Admin> getAdminByEmail(String email) {
-        return adminRepository.findByEmail(email);
+        return adminRepository.findByUserEmail(email);
     }
 
     @Override
     public void changePassword(Long id, String newPassword) {
         Optional<Admin> adminOpt = adminRepository.findById(id);
         adminOpt.ifPresent(admin -> {
-            admin.setPassword(newPassword);
+            admin.getUser().setPassword(newPassword);
             adminRepository.save(admin);
         });
     }

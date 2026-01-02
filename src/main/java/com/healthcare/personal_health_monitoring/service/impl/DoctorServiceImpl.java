@@ -34,7 +34,7 @@ public class DoctorServiceImpl implements DoctorService {
 
     @Override
     public Optional<Doctor> getDoctorByEmail(String email) {
-        return doctorRepository.findByEmail(email);
+        return doctorRepository.findByUserEmail(email);
     }
 
     @Override
