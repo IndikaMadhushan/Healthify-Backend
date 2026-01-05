@@ -5,6 +5,7 @@ public enum HealthMetricType {
     BLOOD_PRESSURE_SYSTOLIC,
     BLOOD_PRESSURE_DIASTOLIC,
     WEIGHT,
+    HEIGHT,
     HEART_RATE,
     TEMPERATURE
 }

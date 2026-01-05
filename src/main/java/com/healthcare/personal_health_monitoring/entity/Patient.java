@@ -20,10 +20,6 @@ public class Patient  {
     @MapsId //tells Hibernate to use the User's ID as the Patient's ID
     @JoinColumn(name = "id")
     private User user;
-
-
-
-
     @Column(nullable=false)
     private String fullName;
 
