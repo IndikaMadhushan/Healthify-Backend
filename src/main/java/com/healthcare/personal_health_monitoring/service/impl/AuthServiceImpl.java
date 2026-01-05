@@ -12,6 +12,7 @@ import com.healthcare.personal_health_monitoring.repository.PatientRepository;
 import com.healthcare.personal_health_monitoring.repository.UserRepository;
 import com.healthcare.personal_health_monitoring.security.JWTUtil;
 import com.healthcare.personal_health_monitoring.service.AuthService;
+import com.healthcare.personal_health_monitoring.service.IdGeneratorService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.antlr.v4.runtime.misc.LogManager;
@@ -38,6 +39,7 @@ public class AuthServiceImpl implements AuthService {
     private final DoctorRepository doctorRepository;
     private final PasswordEncoder passwordEncoder;
     private final JWTUtil jwtUtil;
+    private final IdGeneratorService idGeneratorService;
 
 
     /**
@@ -55,6 +57,14 @@ public class AuthServiceImpl implements AuthService {
             throw new IllegalArgumentException("Email already in use. Use another Email.");
         }
 
+        //to prevent nic duplicate
+
+        if(patientRepository.findByNic(req.getNic()).isPresent()){
+            throw new IllegalArgumentException("NIC already registerd as a patient");
+        }
+
+
+
         User user = new User();
         user.setEmail(req.getEmail());
         user.setPassword(passwordEncoder.encode(req.getPassword()));
@@ -69,6 +79,10 @@ public class AuthServiceImpl implements AuthService {
         patient.setDateOfBirth(req.getDateOfBirth());
         patient.setPhone(req.getPhone());
 
+        patient.setPatientId(idGeneratorService.generatePatientCode());
+
+        patient.setUpdatedAt(LocalDateTime.now());
+
         patientRepository.save(patient);
 
     }
@@ -79,6 +93,15 @@ public class AuthServiceImpl implements AuthService {
         // to Prevent duplicate emails
         if (userRepository.findByEmail(req.getEmail()).isPresent()) {
             throw new IllegalArgumentException("Email already in use. Use another Email.");
+        }
+        // prevent duplicate nic
+        if (doctorRepository.findByNic(req.getNic()).isPresent()) {
+            throw new IllegalArgumentException("NIC already registered as a doctor.");
+        }
+
+        // prevent duplicate Licence number
+        if (doctorRepository.findByLicenseNumber(req.getLicenseNumber()).isPresent()) {
+            throw new IllegalArgumentException("Licence is already registered as a doctor.");
         }
 
         User user = new User();
@@ -97,6 +120,8 @@ public class AuthServiceImpl implements AuthService {
         doctor.setPhone(req.getPhone());
         doctor.setSpecialization(req.getSpecialization());
 
+        doctor.setDoctorCode(idGeneratorService.generateDoctorCode());
+
         doctorRepository.save(doctor);
     }
 
@@ -109,12 +134,12 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Invalid credentials"));
 
-        // 🔐 Password verification
+        // Password verification
         if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new RuntimeException("Invalid credentials");
         }
 
-        // 🚫 Block disabled accounts
+        // Block disabled accounts
         if (!user.isEnabled()) {
             throw new RuntimeException("Account not enabled. Contact admin.");
         }
@@ -146,9 +171,8 @@ public class AuthServiceImpl implements AuthService {
     }
 
     public List<User> getPendingDoctors() {
+
         return userRepository.findByRoleAndEnabled(UserRole.DOCTOR, false);
     }
-
-
 
 }

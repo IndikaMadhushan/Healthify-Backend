@@ -1,8 +1,13 @@
 package com.healthcare.personal_health_monitoring.service.impl;
 
+import com.healthcare.personal_health_monitoring.dto.DoctorResponse;
+import com.healthcare.personal_health_monitoring.dto.PatientResponse;
 import com.healthcare.personal_health_monitoring.entity.Doctor;
+import com.healthcare.personal_health_monitoring.entity.Patient;
 import com.healthcare.personal_health_monitoring.repository.DoctorRepository;
 import com.healthcare.personal_health_monitoring.service.DoctorService;
+import com.healthcare.personal_health_monitoring.util.DoctorMapper;
+import com.healthcare.personal_health_monitoring.util.PatientMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +21,7 @@ import java.util.Optional;
 public class DoctorServiceImpl implements DoctorService {
 
     private final DoctorRepository doctorRepository;
+    //private final DoctorResponse doctorResponse;
 
     @Override
     public Doctor saveDoctor(Doctor doctor) {
@@ -30,6 +36,16 @@ public class DoctorServiceImpl implements DoctorService {
     @Override
     public Optional<Doctor> getDoctorById(Long id) {
         return doctorRepository.findById(id);
+    }
+
+    @Override
+    public DoctorResponse getDoctorByDoctorId(String doctorId) {
+        Doctor doctor = doctorRepository.findByDoctorId(doctorId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("Doctor not found with ID: " + doctorId)
+                );
+
+        return DoctorMapper.toResponse(doctor);
     }
 
     @Override

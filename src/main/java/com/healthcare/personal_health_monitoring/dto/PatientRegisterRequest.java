@@ -22,4 +22,7 @@ public class PatientRegisterRequest {
     @NotBlank(message = "Phone number is required")
     @Pattern(regexp = "^\\d{10}$")
     private String phone;
+    @NotBlank(message = "Nic is required")
+    private String nic;
+
 }

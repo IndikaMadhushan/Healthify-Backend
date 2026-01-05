@@ -26,4 +26,6 @@ public class DoctorRegisterRequest {
     private String phone;
     @NotBlank
     private String specialization;
+    @NotNull(message = "NIC is required")
+    private String nic;
 }

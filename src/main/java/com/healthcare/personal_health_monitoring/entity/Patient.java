@@ -23,6 +23,11 @@ public class Patient  {
     @Column(nullable=false)
     private String fullName;
 
+    //for generated patient id
+    @Column(name = "patient_code", unique = true, nullable = false)
+    private String patientId;
+
+
     @Column(nullable=true)
     private String nic;
 
