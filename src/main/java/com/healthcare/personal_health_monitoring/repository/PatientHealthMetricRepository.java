@@ -1,6 +1,7 @@
 package com.healthcare.personal_health_monitoring.repository;
 
 import com.healthcare.personal_health_monitoring.entity.HealthMetricType;
+import com.healthcare.personal_health_monitoring.entity.PageType;
 import com.healthcare.personal_health_monitoring.entity.PatientHealthMetric;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -15,5 +16,10 @@ public interface PatientHealthMetricRepository
     );
 
     List<PatientHealthMetric> findByPatientId(Long patientId);
+
+    List<PatientHealthMetric> findByPageId(int pageId);
+    void deleteByPageTypeAndPageId(PageType pageType, int pageId);
+
+    List<PatientHealthMetric> findByPageTypeAndPageId(PageType pageType, int pageId);
 }
 
