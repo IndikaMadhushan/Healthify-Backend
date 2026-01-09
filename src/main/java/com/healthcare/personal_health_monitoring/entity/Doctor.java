@@ -23,6 +23,11 @@ public class Doctor  {
     @Column(nullable=false)
     private String fullName;
 
+    //generated doctor id
+    @Column(name = "doctor_code", unique = true, nullable = false)
+    private String doctorId;
+
+
     @Column(nullable=true)
     private String nic;
 
@@ -44,6 +49,7 @@ public class Doctor  {
 
     private String specialization;
 
+    @Column(unique = true, nullable = false)
     private String licenseNumber;
 
     private LocalDate dateOfBirth;

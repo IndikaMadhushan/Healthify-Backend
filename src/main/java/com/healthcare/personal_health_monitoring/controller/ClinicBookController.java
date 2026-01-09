@@ -21,7 +21,10 @@ public class ClinicBookController {
 
     @PostMapping(path = "/{patient_id}")
     @PreAuthorize("hasRole('DOCTOR')")
-    public ResponseEntity<StandardResponse> saveClinicBook(@PathVariable(value = "patient_id") Long patientId, @RequestBody ClinicBookRequestDTO clinicBookRequestDTO,@AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<StandardResponse> saveClinicBook(
+            @PathVariable(value = "patient_id") Long patientId,
+            @RequestBody ClinicBookRequestDTO clinicBookRequestDTO,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long doctorId = userDetails.getUser().getId();
         String message = clinicBookService.saveClinicBook(patientId, clinicBookRequestDTO, doctorId);
 

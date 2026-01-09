@@ -1,12 +1,12 @@
 package com.healthcare.personal_health_monitoring.config;
 
-import com.healthcare.personal_health_monitoring.entity.Doctor;
-import com.healthcare.personal_health_monitoring.entity.User;
-import com.healthcare.personal_health_monitoring.entity.UserRole;
+import com.healthcare.personal_health_monitoring.entity.*;
 import com.healthcare.personal_health_monitoring.repository.DoctorRepository;
+import com.healthcare.personal_health_monitoring.repository.IdSequenceRepository;
 import com.healthcare.personal_health_monitoring.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -49,4 +49,16 @@ public class DataInitializer implements CommandLineRunner {
             doctorRepository.save(doctor);
         }
     }
+
+    @Bean
+    CommandLineRunner initSequences(IdSequenceRepository repo) {
+        return args -> {
+            repo.findById(SequenceType.PATIENT)
+                    .orElseGet(() -> repo.save(new IdSequence(SequenceType.PATIENT, 1L)));
+
+            repo.findById(SequenceType.DOCTOR)
+                    .orElseGet(() -> repo.save(new IdSequence(SequenceType.DOCTOR, 1L)));
+        };
+    }
+
 }

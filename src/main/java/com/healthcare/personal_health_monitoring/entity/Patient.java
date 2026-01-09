@@ -20,12 +20,13 @@ public class Patient  {
     @MapsId //tells Hibernate to use the User's ID as the Patient's ID
     @JoinColumn(name = "id")
     private User user;
-
-
-
-
     @Column(nullable=false)
     private String fullName;
+
+    //for generated patient id
+    @Column(name = "patient_code", unique = true, nullable = false)
+    private String patientId;
+
 
     @Column(nullable=true)
     private String nic;
