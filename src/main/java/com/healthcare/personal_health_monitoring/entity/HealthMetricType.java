@@ -9,6 +9,5 @@ public enum HealthMetricType {
     HEART_RATE,
     TEMPERATURE,
     RESPIRATORY_RATE,
-    BMI,
-    HEIGHT
+    BMI
 }

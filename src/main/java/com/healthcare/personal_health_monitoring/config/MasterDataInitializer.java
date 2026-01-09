@@ -22,8 +22,8 @@ public class MasterDataInitializer implements CommandLineRunner {
         seedAllergies();
     }
 
-    /* ---------------- DISEASES ---------------- */
 
+    //diseasis
     private void seedDiseases() {
 
         List<Disease> diseases = List.of(
@@ -45,7 +45,7 @@ public class MasterDataInitializer implements CommandLineRunner {
         }
     }
 
-    /* ---------------- ALLERGIES ---------------- */
+    //allergies
 
     private void seedAllergies() {
 

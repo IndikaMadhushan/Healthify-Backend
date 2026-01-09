@@ -120,7 +120,7 @@ public class AuthServiceImpl implements AuthService {
         doctor.setPhone(req.getPhone());
         doctor.setSpecialization(req.getSpecialization());
 
-        doctor.setDoctorCode(idGeneratorService.generateDoctorCode());
+        doctor.setDoctorId(idGeneratorService.generateDoctorCode());
 
         doctorRepository.save(doctor);
     }
@@ -144,7 +144,7 @@ public class AuthServiceImpl implements AuthService {
             throw new RuntimeException("Account not enabled. Contact admin.");
         }
 
-        // 🎟 Generate JWT
+        // Generate JWT
         String token = jwtUtil.generateToken(
                 user.getEmail(),
                 user.getRole().name()

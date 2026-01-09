@@ -49,6 +49,7 @@ public class Doctor  {
 
     private String specialization;
 
+    @Column(unique = true, nullable = false)
     private String licenseNumber;
 
     private LocalDate dateOfBirth;
