@@ -27,12 +27,20 @@ public class Doctor  {
     @Column(name = "doctor_code", unique = true, nullable = false)
     private String doctorId;
 
+    @Column(nullable = false)
+    private String gender;
+
+    @Column(nullable = false)
+    private String hospital;
 
     @Column(nullable=true)
     private String nic;
 
     @Column(nullable=true)
     private String postalCode;
+
+    @Column(name = "verification_doc_url")
+    private String verificationDocUrl;
 
 
     @Column(nullable=true)

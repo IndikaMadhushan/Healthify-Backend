@@ -12,12 +12,14 @@ import com.healthcare.personal_health_monitoring.repository.PatientRepository;
 import com.healthcare.personal_health_monitoring.repository.UserRepository;
 import com.healthcare.personal_health_monitoring.security.JWTUtil;
 import com.healthcare.personal_health_monitoring.service.AuthService;
+import com.healthcare.personal_health_monitoring.service.FileUploadService;
 import com.healthcare.personal_health_monitoring.service.IdGeneratorService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.antlr.v4.runtime.misc.LogManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -40,6 +42,7 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JWTUtil jwtUtil;
     private final IdGeneratorService idGeneratorService;
+    private final FileUploadService fileUploadService;
 
 
     /**
@@ -87,9 +90,12 @@ public class AuthServiceImpl implements AuthService {
 
     }
 
-    @Override
+
     @Transactional
-    public void registerDoctor(DoctorRegisterRequest req){
+    public void registerDoctor(
+            DoctorRegisterRequest req,
+            MultipartFile verificationDoc
+    ){
         // to Prevent duplicate emails
         if (userRepository.findByEmail(req.getEmail()).isPresent()) {
             throw new IllegalArgumentException("Email already in use. Use another Email.");
@@ -104,6 +110,8 @@ public class AuthServiceImpl implements AuthService {
             throw new IllegalArgumentException("Licence is already registered as a doctor.");
         }
 
+        //create user
+
         User user = new User();
         user.setEmail(req.getEmail());
         user.setPassword(passwordEncoder.encode(req.getPassword()));
@@ -112,13 +120,21 @@ public class AuthServiceImpl implements AuthService {
 
         userRepository.save(user);
 
+        //upload verification document
+        String docUrl = fileUploadService.uploadFile(verificationDoc);
+
         Doctor doctor = new Doctor();
         doctor.setUser(user);
         doctor.setFullName(req.getFullName());
+        doctor.setGender(req.getGender());
+        doctor.setSpecialization(req.getSpecialization());
+        doctor.setHospital(req.getHospital());
+
         doctor.setLicenseNumber(req.getLicenseNumber());
         doctor.setDateOfBirth(req.getDateOfBirth());
-        doctor.setPhone(req.getPhone());
+
         doctor.setSpecialization(req.getSpecialization());
+        doctor.setVerificationDocUrl(docUrl);
 
         doctor.setDoctorId(idGeneratorService.generateDoctorCode());
 
