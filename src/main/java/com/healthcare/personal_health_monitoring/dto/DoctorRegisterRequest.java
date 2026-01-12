@@ -12,6 +12,8 @@ import java.time.LocalDate;
 public class DoctorRegisterRequest {
     @NotBlank(message = "email is required")
     private String email;
+    @NotBlank(message = "Please select gender")
+    private String gender;
     @NotBlank(message = "password is required")
     private String password;
     @NotBlank(message = "name is required")
@@ -21,11 +23,13 @@ public class DoctorRegisterRequest {
     @Past(message = "dateOfBirth must be in the past")
     @NotNull(message = "Date of Birth is required")
     private LocalDate dateOfBirth;
-    @NotBlank(message = "Phone number is required")
-    @Pattern(regexp = "^\\d{10}$")
-    private String phone;
-    @NotBlank
+//    @NotBlank(message = "Phone number is required")
+//    @Pattern(regexp = "^\\d{10}$")
+//    private String phone;
+    @NotBlank(message = "Please select area of specialization")
     private String specialization;
     @NotNull(message = "NIC is required")
     private String nic;
+    @NotBlank(message = "please enter working hospital")
+    private String hospital;
 }
