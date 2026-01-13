@@ -24,5 +24,6 @@ public class PatientRegisterRequest {
     private String phone;
     @NotBlank(message = "Nic is required")
     private String nic;
-
+    @NotBlank(message = "Please select gender")
+    private String gender;
 }
