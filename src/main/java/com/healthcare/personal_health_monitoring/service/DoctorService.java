@@ -14,4 +14,5 @@ public interface DoctorService {
     Optional<Doctor> getDoctorByNic(String nic);
     List<Doctor> getAllDoctors();
     void deleteDoctor(Long id);
+    //DoctorProfileRe
 }
