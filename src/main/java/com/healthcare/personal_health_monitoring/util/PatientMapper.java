@@ -2,6 +2,8 @@ package com.healthcare.personal_health_monitoring.util;
 
 import com.healthcare.personal_health_monitoring.dto.*;
 import com.healthcare.personal_health_monitoring.entity.*;
+
+import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -111,5 +113,16 @@ public class PatientMapper {
         d.setCauseOfDeath(f.getCauseOfDeath());
         d.setDiseases(f.getDiseases());
         return d;
+    }
+
+
+    public static PatientSearchResponse toSearchResponse(Patient p){
+        return new PatientSearchResponse(
+                p.getId(),
+                p.getPatientId(),
+                p.getFullName(),
+                p.getNic(),
+                p.getGender()
+        );
     }
 }

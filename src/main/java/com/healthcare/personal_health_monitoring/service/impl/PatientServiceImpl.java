@@ -170,4 +170,17 @@ public class PatientServiceImpl implements PatientService {
         if (dob != null) p.setAge(Period.between(dob, LocalDate.now()).getYears());
         else p.setAge(null);
     }
+
+    public List<Patient> searchPatients(String query){
+
+        //if the qury looks like generated patient id
+        if(query.startsWith("PAT-")) {
+            return patientRepository.findByPatientId(query)
+                    .map(List::of)
+                    .orElse(List.of());
+        }
+
+        //otherwise treat is as nic
+        return  patientRepository.findByNicContainingIgnoreCase(query);
+    }
 }
