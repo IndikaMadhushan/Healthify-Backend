@@ -1,5 +1,6 @@
 package com.healthcare.personal_health_monitoring.service.impl;
 
+import com.healthcare.personal_health_monitoring.dto.DoctorProfileResponse;
 import com.healthcare.personal_health_monitoring.dto.DoctorResponse;
 import com.healthcare.personal_health_monitoring.dto.PatientResponse;
 import com.healthcare.personal_health_monitoring.entity.Doctor;
@@ -9,6 +10,7 @@ import com.healthcare.personal_health_monitoring.service.DoctorService;
 import com.healthcare.personal_health_monitoring.util.DoctorMapper;
 import com.healthcare.personal_health_monitoring.util.PatientMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -66,5 +68,33 @@ public class DoctorServiceImpl implements DoctorService {
     @Override
     public void deleteDoctor(Long id) {
         doctorRepository.deleteById(id);
+    }
+
+    @Override
+    public DoctorProfileResponse getMyProfile(){
+
+        //get the logged in doctor email from jwt
+        String email = SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getName();
+
+        //fetch doctor
+        Doctor doctor = doctorRepository.findByUserEmail(email)
+                .orElseThrow(() -> new RuntimeException("Doctor not found"));
+
+        //maps to response dto
+        return new DoctorProfileResponse(
+            doctor.getDoctorId(),
+            doctor.getFullName(),
+            doctor.getUser().getEmail(),
+            doctor.getNic(),
+            doctor.getSpecialization(),
+            doctor.getHospital(),
+            doctor.getLicenseNumber(),
+            doctor.getPhone(),
+            doctor.getAge(),
+            doctor.getPhotoUrl()
+        );
+
     }
 }

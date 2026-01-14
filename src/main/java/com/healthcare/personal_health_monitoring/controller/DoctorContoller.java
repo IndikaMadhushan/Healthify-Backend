@@ -1,7 +1,9 @@
 package com.healthcare.personal_health_monitoring.controller;
 
+import com.healthcare.personal_health_monitoring.dto.DoctorProfileResponse;
 import com.healthcare.personal_health_monitoring.dto.PatientResponse;
 import com.healthcare.personal_health_monitoring.dto.PatientSearchResponse;
+import com.healthcare.personal_health_monitoring.service.DoctorService;
 import com.healthcare.personal_health_monitoring.service.PatientService;
 import com.healthcare.personal_health_monitoring.util.PatientMapper;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +18,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DoctorContoller {
     private final PatientService patientService;
+    private final DoctorService doctorService;
 
     //docot search patient by patient id
     @GetMapping("/patients/{patientId}")
@@ -33,6 +36,11 @@ public class DoctorContoller {
                     .stream()
                     .map(PatientMapper::toSearchResponse)
                     .toList();
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<DoctorProfileResponse> getMyProfile(){
+        return ResponseEntity.ok(doctorService.getMyProfile());
     }
 
 }

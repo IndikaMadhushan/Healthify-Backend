@@ -1,5 +1,6 @@
 package com.healthcare.personal_health_monitoring.service;
 
+import com.healthcare.personal_health_monitoring.dto.DoctorProfileResponse;
 import com.healthcare.personal_health_monitoring.dto.DoctorResponse;
 import com.healthcare.personal_health_monitoring.entity.Doctor;
 
@@ -14,4 +15,5 @@ public interface DoctorService {
     Optional<Doctor> getDoctorByNic(String nic);
     List<Doctor> getAllDoctors();
     void deleteDoctor(Long id);
+    DoctorProfileResponse getMyProfile();
 }
