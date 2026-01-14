@@ -20,7 +20,7 @@ public class PersonalHealthMonitoringApplication {
 			public void addCorsMapping(CorsRegistry registry) {
 				registry.addMapping("/**")
 						.allowedMethods("*")
-						.allowedOrigins("http://localhost:5175");
+						.allowedOrigins("http://localhost:5173");
 			}
 		};
 	}
