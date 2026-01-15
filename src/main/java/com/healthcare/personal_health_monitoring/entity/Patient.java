@@ -61,9 +61,9 @@ public class Patient  {
     private String bloodType;
 
 
-    // ============================
+
     // FAMILY BACKGROUND
-    // ============================
+
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "name", column = @Column(name = "father_name")),
@@ -90,9 +90,9 @@ public class Patient  {
     @CollectionTable(name = "siblings", joinColumns = @JoinColumn(name = "patient_id"))
     private List<FamilyMember> siblings;
 
-    // ============================
+
     // EMERGENCY CONTACTS
-    // ============================
+
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "name", column = @Column(name = "primary_contact_name")),
@@ -109,9 +109,9 @@ public class Patient  {
     })
     private EmergencyContact secondaryContact;
 
-    // ============================
+
     // MAPPED CHILD TABLES
-    // ============================
+
     @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL)
     private List<PatientDisease> diseases;
 

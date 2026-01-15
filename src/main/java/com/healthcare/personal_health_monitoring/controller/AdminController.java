@@ -24,9 +24,8 @@ public class AdminController {
     private final PatientService patientService;
     private final DoctorService doctorService;
 
-    /**
-     * Approve doctor by user ID
-     */
+    // Approve doctor by user ID
+
     @PutMapping("/approve-doctor/{id}")
     public ResponseEntity<String> approveDoctor(@PathVariable Long id) {
         authServiceImpl.approveDoctor(id);

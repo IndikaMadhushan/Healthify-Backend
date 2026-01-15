@@ -12,7 +12,7 @@ public class DoctorMapper {
         // utility class
     }
 
-    /* ---------------- ENTITY → DTO ---------------- */
+    // ENTITY → DTO
 
     public static DoctorResponse toResponse(Doctor d) {
         if (d == null) return null;
@@ -34,7 +34,7 @@ public class DoctorMapper {
                 .build();
     }
 
-    /* ---------------- HELPER ---------------- */
+    // HELPER
 
     private static Integer calculateAge(LocalDate dob) {
         if (dob == null) return null;
