@@ -45,12 +45,20 @@ public class Patient  {
 
     @Column(nullable=true)
     private String phone;
+
+    @Column(nullable = true)
+    private String maritalStatus;
+    @Column(nullable = true)
+    private String occupation;
     @Column(nullable=true)
     private String district;
+    @Column(nullable = true)
+    private String address;
+//    @Column(nullable=true)
+//    private String province;
     @Column(nullable=true)
-    private String province;
-    @Column(nullable=true)
-    private String country;
+    private String nationality;
+    @Column(nullable = false)
     private LocalDate dateOfBirth;
     @Column(name = "age")
     private Integer age;
