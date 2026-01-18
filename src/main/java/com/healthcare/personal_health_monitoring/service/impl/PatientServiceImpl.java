@@ -164,7 +164,7 @@ public class PatientServiceImpl implements PatientService {
         patientRepository.deleteById(id);
     }
 
-    /* ---------------- helper ---------------- */
+    // helper
     private void setAgeFromDob(Patient p) {
         LocalDate dob = p.getDateOfBirth();
         if (dob != null) p.setAge(Period.between(dob, LocalDate.now()).getYears());

@@ -1,9 +1,13 @@
 package com.healthcare.personal_health_monitoring.controller;
 
+import com.healthcare.personal_health_monitoring.dto.DoctorProfileResponse;
+import com.healthcare.personal_health_monitoring.dto.DoctorUpdateRequest;
 import com.healthcare.personal_health_monitoring.dto.PatientResponse;
 import com.healthcare.personal_health_monitoring.dto.PatientSearchResponse;
+import com.healthcare.personal_health_monitoring.service.DoctorService;
 import com.healthcare.personal_health_monitoring.service.PatientService;
 import com.healthcare.personal_health_monitoring.util.PatientMapper;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,6 +20,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DoctorContoller {
     private final PatientService patientService;
+    private final DoctorService doctorService;
 
     //docot search patient by patient id
     @GetMapping("/patients/{patientId}")
@@ -33,6 +38,18 @@ public class DoctorContoller {
                     .stream()
                     .map(PatientMapper::toSearchResponse)
                     .toList();
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<DoctorProfileResponse> getMyProfile(){
+        return ResponseEntity.ok(doctorService.getMyProfile());
+    }
+
+    @PostMapping("/me")
+    public ResponseEntity<DoctorProfileResponse> updateMyProfile(
+            @RequestBody @Valid DoctorUpdateRequest request
+            ){
+        return ResponseEntity.ok(doctorService.updateMyProfile(request));
     }
 
 }

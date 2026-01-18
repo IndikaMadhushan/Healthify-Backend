@@ -18,7 +18,7 @@ public class PatientController {
 
     private final PatientService patientService;
 
-    // Create patient (if you prefer registration via /auth/register you can remove this)
+    // Create patient - if we want to create via /auth/register ignore this
     @PostMapping
     public ResponseEntity<PatientResponse> create(@Valid @RequestBody PatientCreateRequest req) {
         PatientResponse resp = patientService.createPatient(req);
@@ -61,7 +61,7 @@ public class PatientController {
     }
 
     // List all patients (doctor/admin)
-    @GetMapping
+    @GetMapping("/all")
     @PreAuthorize("hasRole('DOCTOR') or hasRole('ADMIN')")
     public ResponseEntity<List<PatientResponse>> listAll() {
         return ResponseEntity.ok(patientService.getAllPatients());

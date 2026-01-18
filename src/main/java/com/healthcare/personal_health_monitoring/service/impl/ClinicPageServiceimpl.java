@@ -237,22 +237,22 @@ public class ClinicPageServiceimpl implements ClinicPageService {
     @Override
     public ClinicPageDTO getClinicPageData(int clinicPageId) {
 
-        // 1️⃣ Get clinic page
+        // Get clinic page
         ClinicPage clinicPage = clinicPageRepo.findById(clinicPageId)
                 .orElseThrow(() -> new RuntimeException("Clinic page not found"));
 
-        // 2️⃣ Map clinic page → DTO (basic fields + medications)
+        // Map clinic page → DTO (basic fields + medications)
         ClinicPageDTO clinicPageDTO =
                 clinicPagemapper.map(clinicPage, ClinicPageDTO.class);
 
-        // 3️⃣ Get metrics using pageType + pageId
+        //  Get metrics using pageType + pageId
         List<PatientHealthMetric> metrics =
                 patientHealthMetricRepository.findByPageTypeAndPageId(
                         PageType.CLINIC,
                         clinicPageId
                 );
 
-        // 4️⃣ Convert metrics → Map
+        //  Convert metrics → Map
         HealthMetricRequestSetDTO metricDTO = new HealthMetricRequestSetDTO();
 
         metricDTO.setMetrics(
@@ -264,7 +264,7 @@ public class ClinicPageServiceimpl implements ClinicPageService {
                         ))
         );
 
-        // 5️⃣ Attach metrics to clinic page DTO
+        //  Attach metrics to clinic page DTO
         clinicPageDTO.setHealthMetricRequestSetDTO(metricDTO);
 
         return clinicPageDTO;

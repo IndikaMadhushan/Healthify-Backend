@@ -21,7 +21,7 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) {
 
-        // ---------------- ADMIN CREATION ----------------
+        //ADMIN CREATION
         if (userRepository.findByEmail("admin@healthcare.com").isEmpty()) {
 
             User admin = new User();
@@ -35,7 +35,7 @@ public class DataInitializer implements CommandLineRunner {
             userRepository.save(admin);
         }
 
-        // ---------------- DOCTOR CREATION ----------------
+        //  DOCTOR CREATION
         if (userRepository.findByEmail("doctor@healthcare.com").isEmpty()) {
 
             Doctor doctor = new Doctor();
