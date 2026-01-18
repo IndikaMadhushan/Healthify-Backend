@@ -1,6 +1,7 @@
 package com.healthcare.personal_health_monitoring.service.impl;
 
 import com.healthcare.personal_health_monitoring.dto.MedicineReminderRequest;
+import com.healthcare.personal_health_monitoring.dto.MedicineReminderResponse;
 import com.healthcare.personal_health_monitoring.dto.PatientResponse;
 import com.healthcare.personal_health_monitoring.entity.MedicineReminder;
 import com.healthcare.personal_health_monitoring.entity.Patient;
@@ -23,7 +24,7 @@ public class MedicineReminderServiceImpl implements MedicineReminderService {
     private final PatientRepository patientRepository;
 
     @Override
-    public MedicineReminder addReminder(Long patientId, MedicineReminderRequest request) {
+    public MedicineReminderResponse addReminder(Long patientId, MedicineReminderRequest request) {
         Patient patient = patientRepository.findById(patientId)
                 .orElseThrow();
 
@@ -39,14 +40,34 @@ public class MedicineReminderServiceImpl implements MedicineReminderService {
         reminder.setActive(true);
         reminder.setLastTriggeredAt(LocalDateTime.now());
 
-        return reminderRepository.save(reminder);
+        MedicineReminder saved = reminderRepository.save(reminder);
 
+        return new MedicineReminderResponse(
+                saved.getId(),
+                saved.getMedicineName(),
+                saved.getReminderType().name(),
+                saved.getTime(),
+                saved.isActive(),
+                saved.getPatient().getPatientId()
+        );
     }
 
     @Override
-    public List<MedicineReminder> getPatientReminders(Long patientId) {
-        return reminderRepository.findByPatientIdAndActiveTrue(patientId);
+    public List<MedicineReminderResponse> getPatientReminders(Long patientId) {
+
+        List<MedicineReminder> reminders = reminderRepository.findByPatientIdAndActiveTrue(patientId);
+
+        return reminders.stream().map(r -> new MedicineReminderResponse(
+                r.getId(),
+                r.getMedicineName(),
+                r.getReminderType().name(),
+                r.getTime(),
+                r.isActive(),
+                r.getPatient().getPatientId()
+        )).toList();
     }
+
+
 
     @Override
     public void deactivateReminder(Long reminderId) {

@@ -1,6 +1,7 @@
 package com.healthcare.personal_health_monitoring.controller;
 
 import com.healthcare.personal_health_monitoring.dto.MedicineReminderRequest;
+import com.healthcare.personal_health_monitoring.dto.MedicineReminderResponse;
 import com.healthcare.personal_health_monitoring.entity.MedicineReminder;
 import com.healthcare.personal_health_monitoring.service.MedicineReminderService;
 import jakarta.persistence.SqlResultSetMapping;
@@ -17,7 +18,7 @@ public class MedicineReminderController {
 
     //Add reminder
     @PostMapping("/{patientId}")
-    public MedicineReminder addReminder(
+    public MedicineReminderResponse addReminder(
             @PathVariable Long patientId,
             @RequestBody MedicineReminderRequest request
             ){
@@ -26,7 +27,7 @@ public class MedicineReminderController {
 
     //view reminders
     @GetMapping("/{patientId}")
-    public List<MedicineReminder> getReminders(@PathVariable Long patientId){
+    public List<MedicineReminderResponse> getReminders(@PathVariable Long patientId){
         return reminderService.getPatientReminders(patientId);
 
     }
