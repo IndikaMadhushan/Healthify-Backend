@@ -13,5 +13,6 @@ public interface EmailService {
 
    void sendPeriodReminderEmail(String email, String subject, String nextDate);
 
+   void sendOtpEmail(String toEmail, String otp);
 
 }

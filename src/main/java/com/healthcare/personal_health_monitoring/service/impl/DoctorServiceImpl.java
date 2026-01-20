@@ -8,6 +8,7 @@ import com.healthcare.personal_health_monitoring.entity.Doctor;
 import com.healthcare.personal_health_monitoring.entity.Patient;
 import com.healthcare.personal_health_monitoring.repository.DoctorRepository;
 import com.healthcare.personal_health_monitoring.service.DoctorService;
+import com.healthcare.personal_health_monitoring.util.AgeUtil;
 import com.healthcare.personal_health_monitoring.util.DoctorMapper;
 import com.healthcare.personal_health_monitoring.util.PatientMapper;
 import lombok.RequiredArgsConstructor;
@@ -114,6 +115,9 @@ public class DoctorServiceImpl implements DoctorService {
         doctor.setPhone(request.getPhone());
         doctor.setHospital(request.getHospital());
         doctor.setSpecialization(request.getSpecialization());
+        if(request.getDateOfBirth() != null) {
+            doctor.setAge(AgeUtil.calculateAge(request.getDateOfBirth()));
+        }
 
         //save data
         Doctor saved = doctorRepository.save(doctor);
