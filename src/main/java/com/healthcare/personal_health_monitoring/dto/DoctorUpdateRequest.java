@@ -3,6 +3,8 @@ package com.healthcare.personal_health_monitoring.dto;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
+import java.time.LocalDate;
+
 @Data
 public class DoctorUpdateRequest {
     @NotBlank(message = "Full name is required")
@@ -15,4 +17,6 @@ public class DoctorUpdateRequest {
 
     @NotBlank(message = "Specialization is required")
     private String specialization;
+
+    private LocalDate dateOfBirth;
 }

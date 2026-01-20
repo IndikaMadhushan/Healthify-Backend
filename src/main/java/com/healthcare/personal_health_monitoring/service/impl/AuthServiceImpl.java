@@ -12,8 +12,12 @@ import com.healthcare.personal_health_monitoring.repository.PatientRepository;
 import com.healthcare.personal_health_monitoring.repository.UserRepository;
 import com.healthcare.personal_health_monitoring.security.JWTUtil;
 import com.healthcare.personal_health_monitoring.service.AuthService;
+import com.healthcare.personal_health_monitoring.service.EmailService;
+import com.healthcare.personal_health_monitoring.service.EmailValidationService;
 import com.healthcare.personal_health_monitoring.service.FileUploadService;
 import com.healthcare.personal_health_monitoring.service.IdGeneratorService;
+import com.healthcare.personal_health_monitoring.util.AgeUtil;
+import com.healthcare.personal_health_monitoring.util.OtpGenerator;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.antlr.v4.runtime.misc.LogManager;
@@ -43,14 +47,15 @@ public class AuthServiceImpl implements AuthService {
     private final JWTUtil jwtUtil;
     private final IdGeneratorService idGeneratorService;
     private final FileUploadService fileUploadService;
+    private final EmailValidationService emailValidationService;
+    private final EmailService emailService;
 
 
     /**
-     * Registers a new user.
-     *
-     * - PATIENT → enabled immediately
-     * - DOCTOR  → disabled until admin approval
-     * - ADMIN   → already in the system
+     Registers a new user.
+        PATIENT → enabled immediately
+        DOCTOR  → disabled until admin approval
+        ADMIN   → already in the system
      */
     @Override
     @Transactional
@@ -74,19 +79,37 @@ public class AuthServiceImpl implements AuthService {
         user.setRole(UserRole.PATIENT);
         user.setEnabled(true);
 
-        userRepository.save(user);
+
 
         Patient patient = new Patient();
         patient.setUser(user);
         patient.setFullName(req.getFullName());
         patient.setDateOfBirth(req.getDateOfBirth());
+        patient.setAge(AgeUtil.calculateAge(req.getDateOfBirth()));
         patient.setPhone(req.getPhone());
+        patient.setGender(req.getGender());
+
+
 
         patient.setPatientId(idGeneratorService.generatePatientCode());
 
         patient.setUpdatedAt(LocalDateTime.now());
 
+        if(!emailValidationService.isValidEmail(req.getEmail())){
+            throw new RuntimeException("Email does ot exist or invalid");
+        }
+
         patientRepository.save(patient);
+
+        //OTP generqtion part
+        String otp = OtpGenerator.generateOtp();
+        user.setEmailOtp(otp);
+        user.setOtpGeneratedAt(LocalDateTime.now());
+        user.setEmailVerified(false);
+
+        userRepository.save(user);
+
+        emailService.sendOtpEmail(user.getEmail(), otp);
 
     }
 
@@ -129,16 +152,32 @@ public class AuthServiceImpl implements AuthService {
         doctor.setGender(req.getGender());
         doctor.setSpecialization(req.getSpecialization());
         doctor.setHospital(req.getHospital());
+        doctor.setGender(req.getGender());
 
         doctor.setLicenseNumber(req.getLicenseNumber());
         doctor.setDateOfBirth(req.getDateOfBirth());
+        doctor.setAge(AgeUtil.calculateAge(req.getDateOfBirth()));
 
         doctor.setSpecialization(req.getSpecialization());
         doctor.setVerificationDocUrl(docUrl);
 
         doctor.setDoctorId(idGeneratorService.generateDoctorCode());
 
+        if(!emailValidationService.isValidEmail(req.getEmail())){
+            throw new RuntimeException("Email does ot exist or invalid");
+        }
+
         doctorRepository.save(doctor);
+
+        //OTP generqtion part
+        String otp = OtpGenerator.generateOtp();
+        user.setEmailOtp(otp);
+        user.setOtpGeneratedAt(LocalDateTime.now());
+        user.setEmailVerified(false);
+
+        userRepository.save(user);
+
+        emailService.sendOtpEmail(user.getEmail(), otp);
     }
 
 
@@ -158,6 +197,11 @@ public class AuthServiceImpl implements AuthService {
         // Block disabled accounts
         if (!user.isEnabled()) {
             throw new RuntimeException("Account not enabled. Contact admin.");
+        }
+
+        //block until the email validation
+        if(!user.isEmailVerified()){
+            throw new RuntimeException("Please verify you email before log in");
         }
 
         // Generate JWT

@@ -60,13 +60,17 @@ public class Patient  {
     private String nationality;
     @Column(nullable = false)
     private LocalDate dateOfBirth;
-    @Column(name = "age")
+
+    @Column(name = "age", nullable = false)
     private Integer age;
 
     private String gender;
     private Double height;
     private Double weight;
     private String bloodType;
+
+    @Column(name = "bmi")
+    private Double bmi;
 
 
 
