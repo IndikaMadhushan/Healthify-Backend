@@ -35,6 +35,9 @@ public class ClinicPageServiceimpl implements ClinicPageService {
     @Autowired
     private EmailService emailService;
 
+    @Autowired
+    private DoctorRepository doctorRepo;
+
     @Transactional
     @Override
     public String saveClinicPage(int clinicBookId, ClinicPageDTO clinicPageDTO, Long doctor_id) {
@@ -43,9 +46,10 @@ public class ClinicPageServiceimpl implements ClinicPageService {
         ClinicBook clinicBook = clinicBookRepo.findById(clinicBookId)
                 .orElseThrow(() -> new RuntimeException("ClinicBook not found"));
 
-
-        if (!clinicBook.getDoctor().getUser().getId().equals(doctor_id)) {
-            throw new SecurityException("You are not allowed to add clinic pages to this clinic book");
+        if(clinicBook.getAccessControl().equals(AccessControlClinic.DENY)) {
+            if (!clinicBook.getDoctor().getUser().getId().equals(doctor_id)) {
+                throw new SecurityException("You are not allowed to add clinic pages to this clinic book");
+            }
         }
 
         // Get Patient automatically
@@ -112,11 +116,16 @@ public class ClinicPageServiceimpl implements ClinicPageService {
 
         ClinicPage clinicPage = clinicPageRepo.findById(clinicPageId)
                 .orElseThrow(() -> new RuntimeException("Clinic page not found"));
+        ClinicBook clinicBook = clinicPage.getClinicBook();
 
-        //Check doctor ownership
-        if (!clinicPage.getClinicBook().getDoctor().getUser().getId().equals(doctor_id)) {
-            throw new RuntimeException("You cannot edit this clinic page");
+        if(clinicBook.getAccessControl().equals(AccessControlClinic.DENY)) {
+            if (!clinicPage.getClinicBook().getDoctor().getUser().getId().equals(doctor_id)) {
+                throw new RuntimeException("You cannot edit this clinic page");
+            }
         }
+
+        Doctor doctor = doctorRepo.findById(doctor_id)
+                .orElseThrow(() -> new RuntimeException("Doctor not found"));
 
         // Check time/approval
         boolean withinTime = isWithinEditWindow(clinicPage);
@@ -129,6 +138,7 @@ public class ClinicPageServiceimpl implements ClinicPageService {
         }
 
         // uPDATE DATA (ALLOWED)
+        clinicPage.setUpdatedDoctor(doctor.getFullName()); //should reaplace with slmc no
         clinicPage.setSubReason(clinicPageDTO.getSubReason());
         clinicPage.setClinicExaming(clinicPageDTO.getClinicExaming());
         clinicPage.setClinicSuggestTest(clinicPageDTO.getClinicSuggestTest());
@@ -209,14 +219,17 @@ public class ClinicPageServiceimpl implements ClinicPageService {
         ClinicPage clinicPage = clinicPageRepo.findById(clinicPageId)
                 .orElseThrow(() -> new RuntimeException("Clinic page not found"));
 
-        if (!clinicPage.getClinicBook()
-                .getDoctor()
-                .getUser()
-                .getId()
-                .equals(doctorId)) {
-            throw new RuntimeException("You cannot delete this clinic page");
-        }
+        ClinicBook clinicBook = clinicPage.getClinicBook();
 
+        if(clinicBook.getAccessControl().equals(AccessControlClinic.DENY)) {
+            if (!clinicPage.getClinicBook()
+                    .getDoctor()
+                    .getUser()
+                    .getId()
+                    .equals(doctorId)) {
+                throw new RuntimeException("You cannot delete this clinic page");
+            }
+        }
         boolean withinTime = isWithinEditWindow(clinicPage);
         boolean approved = clinicPage.isPatientApprovedForEdit();
 
@@ -237,22 +250,22 @@ public class ClinicPageServiceimpl implements ClinicPageService {
     @Override
     public ClinicPageDTO getClinicPageData(int clinicPageId) {
 
-        // 1️⃣ Get clinic page
+        //  Get clinic page
         ClinicPage clinicPage = clinicPageRepo.findById(clinicPageId)
                 .orElseThrow(() -> new RuntimeException("Clinic page not found"));
 
-        // 2️⃣ Map clinic page → DTO (basic fields + medications)
+        // Map clinic page → DTO (basic fields + medications)
         ClinicPageDTO clinicPageDTO =
                 clinicPagemapper.map(clinicPage, ClinicPageDTO.class);
 
-        // 3️⃣ Get metrics using pageType + pageId
+        //  Get metrics using pageType + pageId
         List<PatientHealthMetric> metrics =
                 patientHealthMetricRepository.findByPageTypeAndPageId(
                         PageType.CLINIC,
                         clinicPageId
                 );
 
-        // 4️⃣ Convert metrics → Map
+        //  Convert metrics → Map
         HealthMetricRequestSetDTO metricDTO = new HealthMetricRequestSetDTO();
 
         metricDTO.setMetrics(
@@ -264,7 +277,7 @@ public class ClinicPageServiceimpl implements ClinicPageService {
                         ))
         );
 
-        // 5️⃣ Attach metrics to clinic page DTO
+        //  Attach metrics to clinic page DTO
         clinicPageDTO.setHealthMetricRequestSetDTO(metricDTO);
 
         return clinicPageDTO;
@@ -276,11 +289,13 @@ public class ClinicPageServiceimpl implements ClinicPageService {
 
         ClinicPage page = clinicPageRepo.findById(clinicPageId)
                 .orElseThrow(() -> new RuntimeException("ClinicPage not found"));
+        ClinicBook clinicBook = page.getClinicBook();
 
-        if (!page.getClinicBook().getDoctor().getUser().getId().equals(doctorId)) {
-            throw new SecurityException("You are not allowed to edit/delete");
+        if(clinicBook.getAccessControl().equals(AccessControlClinic.DENY)) {
+            if (!page.getClinicBook().getDoctor().getUser().getId().equals(doctorId)) {
+                throw new SecurityException("You are not allowed to edit/delete");
+            }
         }
-
         // reset previous approval
         page.setPatientApprovedForEdit(false);
         page.setPatientApprovedTime(null);
@@ -323,7 +338,7 @@ public class ClinicPageServiceimpl implements ClinicPageService {
                 clinicPage.getPagecreatedTime()
         );
 
-        return createdAt.plusMinutes(20)
+        return createdAt.plusMinutes(10)
                 .isAfter(LocalDateTime.now());
     }
 
