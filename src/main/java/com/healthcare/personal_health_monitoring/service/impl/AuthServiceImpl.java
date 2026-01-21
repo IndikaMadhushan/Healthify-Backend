@@ -194,15 +194,17 @@ public class AuthServiceImpl implements AuthService {
             throw new RuntimeException("Invalid credentials");
         }
 
+        //block until the email validation
+        if(!user.isEmailVerified()){
+            throw new RuntimeException("Please verify you email before log in");
+        }
+
         // Block disabled accounts
         if (!user.isEnabled()) {
             throw new RuntimeException("Account not enabled. Contact admin.");
         }
 
-        //block until the email validation
-        if(!user.isEmailVerified()){
-            throw new RuntimeException("Please verify you email before log in");
-        }
+
 
         // Generate JWT
         String token = jwtUtil.generateToken(
