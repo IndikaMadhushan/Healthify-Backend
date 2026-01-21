@@ -72,6 +72,7 @@ public class PatientMapper {
                 .diseases(p.getDiseases() == null ? Set.of() : p.getDiseases().stream().map(pd -> pd.getDisease().getName()).collect(Collectors.toSet()))
                 .allergies(p.getAllergies() == null ? Set.of() : p.getAllergies().stream().map(pa -> pa.getAllergy().getName()).collect(Collectors.toSet()))
                 .updatedAt(p.getUpdatedAt())
+                .patientId(p.getPatientId())
                 .build();
     }
 

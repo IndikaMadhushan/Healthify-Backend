@@ -75,6 +75,8 @@ public class AuthController {
             user.setOtpGeneratedAt(null);
             userRepository.save(user);
 
+            //System.out.println("email verified");
+
             return ResponseEntity.ok("Email Verified Successfully");
         }
 

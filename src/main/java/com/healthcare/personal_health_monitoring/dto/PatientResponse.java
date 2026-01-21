@@ -25,6 +25,7 @@ public class PatientResponse {
     private Double weight;
     private String bloodType;
     private String postalCode;
+    private String patientId;
 
     private EmergencyContactDTO primaryContact;
     private EmergencyContactDTO secondaryContact;
