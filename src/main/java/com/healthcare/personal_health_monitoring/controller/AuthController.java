@@ -5,6 +5,7 @@ import com.healthcare.personal_health_monitoring.entity.User;
 import com.healthcare.personal_health_monitoring.repository.UserRepository;
 import com.healthcare.personal_health_monitoring.service.AuthService;
 import com.healthcare.personal_health_monitoring.service.EmailService;
+import com.healthcare.personal_health_monitoring.service.FileUploadService;
 import com.healthcare.personal_health_monitoring.service.impl.AuthServiceImpl;
 import com.healthcare.personal_health_monitoring.util.OtpGenerator;
 import jakarta.validation.Valid;
@@ -24,6 +25,7 @@ public class AuthController {
     private final AuthService authService;
     private  final UserRepository userRepository;
     private final EmailService emailService;
+
 
 
     @PostMapping("/patient/register")

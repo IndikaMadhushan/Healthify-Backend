@@ -73,7 +73,14 @@ public class PatientMapper {
                 .allergies(p.getAllergies() == null ? Set.of() : p.getAllergies().stream().map(pa -> pa.getAllergy().getName()).collect(Collectors.toSet()))
                 .updatedAt(p.getUpdatedAt())
                 .patientId(p.getPatientId())
+                .maritalStatus(p.getMaritalStatus())
+                .nationality(p.getNationality())
+                .occupation(p.getOccupation())
+                .district(p.getDistrict())
+                .address(p.getAddress())
+                .phone(p.getPhone())
                 .build();
+
     }
 
     private static EmergencyContact toEmergencyEntity(EmergencyContactDTO d) {

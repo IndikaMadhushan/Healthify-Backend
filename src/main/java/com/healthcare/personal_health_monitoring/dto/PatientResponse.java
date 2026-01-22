@@ -26,6 +26,12 @@ public class PatientResponse {
     private String bloodType;
     private String postalCode;
     private String patientId;
+    private String nationality;
+    private String maritalStatus;
+    private String occupation;
+    private String district;
+    private String address;
+    private String phone;
 
     private EmergencyContactDTO primaryContact;
     private EmergencyContactDTO secondaryContact;

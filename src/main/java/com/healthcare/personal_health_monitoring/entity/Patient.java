@@ -69,6 +69,9 @@ public class Patient  {
     private Double weight;
     private String bloodType;
 
+    private String photoUrl;
+
+
     @Column(name = "bmi")
     private Double bmi;
 

@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -63,6 +64,27 @@ public class PatientController {
         PatientResponse resp = patientService.updatePatient(id, req);
         return ResponseEntity.ok(resp);
     }
+
+
+    @PostMapping("/{id}/profile-image")
+    @PreAuthorize("hasRole('PATIENT')")
+    public ResponseEntity<String> uploadProfileImage(
+            @PathVariable Long id,
+            @RequestPart("image") MultipartFile image,
+            Authentication auth
+    ) {
+        // ensure patient uploads only their own image
+        Patient patient = patientRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Patient not found"));
+
+        if (!patient.getUser().getEmail().equals(auth.getName())) {
+            return ResponseEntity.status(403).build();
+        }
+
+        String imageUrl = patientService.uploadProfileImage(id, image);
+        return ResponseEntity.ok(imageUrl);
+    }
+
 
     // List all patients (doctor/admin)
     @GetMapping("/all")
