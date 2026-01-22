@@ -10,7 +10,7 @@ import java.util.List;
 public interface PatientHealthMetricRepository
         extends JpaRepository<PatientHealthMetric, Long> {
 
-    List<PatientHealthMetric> findByPatientIdAndMetricTypeOrderByRecordedAtAsc(
+    List<PatientHealthMetric> findByPatient_IdAndMetricTypeOrderByRecordedAtAsc(
             Long patientId,
             HealthMetricType metricType
     );

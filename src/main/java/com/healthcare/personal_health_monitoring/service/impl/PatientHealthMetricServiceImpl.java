@@ -43,8 +43,9 @@ public class PatientHealthMetricServiceImpl
             HealthMetricType metricType) {
 
         return metricRepository
-                .findByPatientIdAndMetricTypeOrderByRecordedAtAsc(
-                        patientId, metricType
+                .findByPatient_IdAndMetricTypeOrderByRecordedAtAsc(
+                        patientId,
+                        metricType
                 );
     }
 }

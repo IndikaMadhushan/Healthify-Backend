@@ -8,6 +8,5 @@ public enum HealthMetricType {
     HEIGHT,
     HEART_RATE,
     TEMPERATURE,
-    RESPIRATORY_RATE,
-    BMI
+    CHOLESTEROL
 }

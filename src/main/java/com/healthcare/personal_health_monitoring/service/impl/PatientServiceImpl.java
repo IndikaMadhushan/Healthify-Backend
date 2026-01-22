@@ -3,6 +3,7 @@ package com.healthcare.personal_health_monitoring.service.impl;
 import com.healthcare.personal_health_monitoring.dto.*;
 import com.healthcare.personal_health_monitoring.entity.*;
 import com.healthcare.personal_health_monitoring.repository.*;
+import com.healthcare.personal_health_monitoring.service.FileUploadService;
 import com.healthcare.personal_health_monitoring.service.PatientService;
 import com.healthcare.personal_health_monitoring.util.AgeUtil;
 import com.healthcare.personal_health_monitoring.util.BmiUtil;
@@ -10,6 +11,7 @@ import com.healthcare.personal_health_monitoring.util.PatientMapper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -28,6 +30,7 @@ public class PatientServiceImpl implements PatientService {
     private final AllergyRepository allergyRepository;
     private final SurgeryRepository surgeryRepository;
     private final NoteRepository noteRepository;
+    private final FileUploadService fileUploadService;
 
     @Override
     public PatientResponse createPatient(PatientCreateRequest request) {
@@ -200,4 +203,17 @@ public class PatientServiceImpl implements PatientService {
         //otherwise treat is as nic
         return  patientRepository.findByNicContainingIgnoreCase(query);
     }
+
+    @Override
+    public String uploadProfileImage(Long patientId, MultipartFile image) {
+        Patient patient = patientRepository.findById(patientId)
+                .orElseThrow(() -> new RuntimeException("Patient not found"));
+
+        String imageUrl = fileUploadService.uploadFile(image);
+        patient.setPhotoUrl(imageUrl);
+
+        patientRepository.save(patient);
+        return imageUrl;
+    }
+
 }

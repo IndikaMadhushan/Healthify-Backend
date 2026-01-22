@@ -4,6 +4,7 @@ import com.healthcare.personal_health_monitoring.dto.PatientCreateRequest;
 import com.healthcare.personal_health_monitoring.dto.PatientResponse;
 import com.healthcare.personal_health_monitoring.dto.PatientUpdateRequest;
 import com.healthcare.personal_health_monitoring.entity.Patient;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -17,4 +18,5 @@ public interface PatientService {
     List<PatientResponse> getAllPatients();
     void deletePatient(Long id);
     List<Patient> searchPatients(String query);
+    String uploadProfileImage(Long patientId, MultipartFile image);
 }
