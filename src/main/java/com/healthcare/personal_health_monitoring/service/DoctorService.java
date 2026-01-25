@@ -18,4 +18,6 @@ public interface DoctorService {
     void deleteDoctor(Long id);
     DoctorProfileResponse getMyProfile();
     DoctorProfileResponse updateMyProfile(DoctorUpdateRequest request);
+    void toggleDoctorStatus(String doctorId);
+    List<DoctorResponse> getPendingDoctors();
 }

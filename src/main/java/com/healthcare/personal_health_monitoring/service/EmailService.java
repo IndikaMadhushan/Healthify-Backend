@@ -14,5 +14,7 @@ public interface EmailService {
    void sendPeriodReminderEmail(String email, String subject, String nextDate);
 
    void sendOtpEmail(String toEmail, String otp);
-
+    void sendRejectionEmail(String email, String doctorName);
+    void sendAccountActivatedEmail(String email, String userName);
+    void sendAccountDeactivatedEmail(String email, String userName);
 }

@@ -104,4 +104,15 @@ public class Doctor  {
         }
         this.user.setEnabled(b);
     }
+    public String getEmail() {
+        return user != null ? user.getEmail() : null;
+    }
+
+    public boolean isEnabled() {
+        return user != null && user.isEnabled();
+    }
+
+    public UserRole getRole() {
+        return user != null ? user.getRole() : null;
+    }
 }

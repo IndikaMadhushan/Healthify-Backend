@@ -3,6 +3,7 @@ package com.healthcare.personal_health_monitoring.service.impl;
 import com.healthcare.personal_health_monitoring.dto.*;
 import com.healthcare.personal_health_monitoring.entity.*;
 import com.healthcare.personal_health_monitoring.repository.*;
+import com.healthcare.personal_health_monitoring.service.EmailService;
 import com.healthcare.personal_health_monitoring.service.FileUploadService;
 import com.healthcare.personal_health_monitoring.service.PatientService;
 import com.healthcare.personal_health_monitoring.util.AgeUtil;
@@ -31,6 +32,8 @@ public class PatientServiceImpl implements PatientService {
     private final SurgeryRepository surgeryRepository;
     private final NoteRepository noteRepository;
     private final FileUploadService fileUploadService;
+    private final UserRepository userRepository;
+    private final EmailService emailService;
 
     @Override
     public PatientResponse createPatient(PatientCreateRequest request) {
@@ -214,6 +217,31 @@ public class PatientServiceImpl implements PatientService {
 
         patientRepository.save(patient);
         return imageUrl;
+    }
+
+    @Override
+    @Transactional
+    public void togglePatientStatus(String patientId) {
+        // Find patient by patientId
+        Patient patient = patientRepository.findByPatientId(patientId)
+                .orElseThrow(() -> new RuntimeException("Patient not found with ID: " + patientId));
+
+        // Get associated user
+        User user = patient.getUser();
+        if (user == null) {
+            throw new RuntimeException("User not found for patient: " + patientId);
+        }
+
+        // Toggle enabled status
+        user.setEnabled(!user.isEnabled());
+        userRepository.save(user);
+
+        // Optional: Send notification email
+         if (user.isEnabled()) {
+             emailService.sendAccountActivatedEmail(user.getEmail(), patient.getFullName());
+         } else {
+             emailService.sendAccountDeactivatedEmail(user.getEmail(), patient.getFullName());
+         }
     }
 
 }

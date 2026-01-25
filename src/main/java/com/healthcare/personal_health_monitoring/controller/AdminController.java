@@ -33,8 +33,8 @@ public class AdminController {
     }
 
     @GetMapping("/pending-doctors")
-    public List<User> pendingDoctors() {
-        return authServiceImpl.getPendingDoctors();
+    public List<DoctorResponse> pendingDoctors() {
+        return doctorService.getPendingDoctors();
     }
 
     @GetMapping("/patients/{patientId}")
@@ -46,6 +46,14 @@ public class AdminController {
         return ResponseEntity.ok(response);
     }
 
+//    @GetMapping("/patients/search")
+//    public ResponseEntity<PatientResponse> searchPatient(
+//            @RequestParam String searchType,
+//            @RequestParam String query
+//    ){
+//
+//    }
+
     @GetMapping("/doctors/{doctorId}")
    // @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<DoctorResponse> getdoctorById(
@@ -55,4 +63,41 @@ public class AdminController {
         return ResponseEntity.ok(response);
     }
 
+//    @GetMapping("/doctors/search")
+//    public ResponseEntity<DoctorResponse> searchDoctor(
+//            @RequestParam String searchType,
+//            @RequestParam String query
+//    ){
+//
+//    }
+
+    // Reject doctor registration
+    @DeleteMapping("/reject-doctor/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<String> rejectDoctor(@PathVariable Long id) {
+        authServiceImpl.rejectDoctor(id);
+        return ResponseEntity.ok("Doctor registration rejected");
+    }
+
+    // Toggle doctor account status active or disable
+    @PutMapping("/doctors/{doctorId}/toggle-status")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<String> toggleDoctorStatus(@PathVariable String doctorId) {
+        doctorService.toggleDoctorStatus(doctorId);
+        return ResponseEntity.ok("Doctor status updated");
+    }
+
+    // Toggle patient account status active or disable
+    @PutMapping("/patients/{patientId}/toggle-status")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<String> togglePatientStatus(@PathVariable String patientId) {
+        patientService.togglePatientStatus(patientId);
+        return ResponseEntity.ok("Patient status updated");
+    }
+
 }
+
+
+
+
+

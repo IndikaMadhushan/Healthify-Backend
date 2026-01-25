@@ -19,4 +19,5 @@ public interface PatientService {
     void deletePatient(Long id);
     List<Patient> searchPatients(String query);
     String uploadProfileImage(Long patientId, MultipartFile image);
+    void togglePatientStatus(String patientId);
 }

@@ -6,11 +6,15 @@ import com.healthcare.personal_health_monitoring.dto.DoctorUpdateRequest;
 import com.healthcare.personal_health_monitoring.dto.PatientResponse;
 import com.healthcare.personal_health_monitoring.entity.Doctor;
 import com.healthcare.personal_health_monitoring.entity.Patient;
+import com.healthcare.personal_health_monitoring.entity.User;
 import com.healthcare.personal_health_monitoring.repository.DoctorRepository;
+import com.healthcare.personal_health_monitoring.repository.UserRepository;
 import com.healthcare.personal_health_monitoring.service.DoctorService;
+import com.healthcare.personal_health_monitoring.service.EmailService;
 import com.healthcare.personal_health_monitoring.util.AgeUtil;
 import com.healthcare.personal_health_monitoring.util.DoctorMapper;
 import com.healthcare.personal_health_monitoring.util.PatientMapper;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -19,12 +23,15 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class DoctorServiceImpl implements DoctorService {
 
     private final DoctorRepository doctorRepository;
+    private final UserRepository userRepository;
+    private final EmailService emailService;
     //private final DoctorResponse doctorResponse;
 
     @Override
@@ -135,5 +142,39 @@ public class DoctorServiceImpl implements DoctorService {
                 saved.getAge(),
                 saved.getPhotoUrl()
         );
+    }
+
+    @Override
+    @Transactional
+    public void toggleDoctorStatus(String doctorId) {
+        // Find doctor by doctorId
+        Doctor doctor = doctorRepository.findByDoctorId(doctorId)
+                .orElseThrow(() -> new RuntimeException("Doctor not found with ID: " + doctorId));
+
+        // Get associated user
+        User user = doctor.getUser();
+        if (user == null) {
+            throw new RuntimeException("User not found for doctor: " + doctorId);
+        }
+
+        // Toggle enabled status
+        user.setEnabled(!user.isEnabled());
+        userRepository.save(user);
+
+        //  Send notification email
+         if (user.isEnabled()) {
+             emailService.sendAccountActivatedEmail(user.getEmail(), doctor.getFullName());
+         } else {
+             emailService.sendAccountDeactivatedEmail(user.getEmail(), doctor.getFullName());
+         }
+    }
+
+    @Override
+    public List<DoctorResponse> getPendingDoctors() {
+        List<Doctor> pendingDoctors = doctorRepository.findByUserEnabled(false);
+
+        return pendingDoctors.stream()
+                .map(DoctorMapper::toResponse)
+                .collect(Collectors.toList());
     }
 }

@@ -44,4 +44,8 @@ public class PatientResponse {
     private Set<String> allergies; // names
 
     private LocalDateTime updatedAt;
+
+    private boolean enabled;
+    private String role;
+    private LocalDate registrationDate;
 }
