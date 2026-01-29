@@ -28,22 +28,27 @@ public class ClinicBook {
     @JoinColumn(name = "DID", nullable = false)
     private Doctor doctor;
 
-
-
     @Column(nullable=false)
     private String visit_reason;
 
-
+    @Column(nullable=false)
+    @Enumerated(EnumType.STRING)
+    private  AccessControlClinic accessControl;
 
     private LocalDate createdDate;
     private LocalTime createdTime;
 
-    @PrePersist
-    public void onCreate() {
-        this.createdDate = LocalDate.now();
-        this.createdTime = LocalTime.now();
-    }
+//    @PrePersist
+//    public void onCreate() {
+//        this.createdDate = LocalDate.now();
+//        this.createdTime = LocalTime.now();
+//    }
 
+    @Column(nullable = false)
+    private String doctorName;
+
+    private String UpdatedDoctor;
+    private LocalDateTime updatedTime;
 
 
 
