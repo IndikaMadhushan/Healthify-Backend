@@ -76,6 +76,7 @@ public class PatientMapper {
                 .allergies(p.getAllergies() == null ? Set.of() : p.getAllergies().stream().map(pa -> pa.getAllergy().getName()).collect(Collectors.toSet()))
                 .updatedAt(p.getUpdatedAt())
                 .patientId(p.getPatientId())
+                .photoUrl(p.getPhotoUrl())
                 .maritalStatus(p.getMaritalStatus())
                 .nationality(p.getNationality())
                 .occupation(p.getOccupation())
