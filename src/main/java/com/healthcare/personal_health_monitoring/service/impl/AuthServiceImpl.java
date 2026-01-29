@@ -71,6 +71,7 @@ public class AuthServiceImpl implements AuthService {
         user.setRole(UserRole.PATIENT);
         user.setEnabled(true);
 
+
         userRepository.save(user);
 
         Patient patient = new Patient();
@@ -78,6 +79,7 @@ public class AuthServiceImpl implements AuthService {
         patient.setFullName(req.getFullName());
         patient.setDateOfBirth(req.getDateOfBirth());
         patient.setPhone(req.getPhone());
+
 
         patient.setPatientId(idGeneratorService.generatePatientCode());
 

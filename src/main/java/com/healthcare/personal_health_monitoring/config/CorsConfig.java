@@ -19,7 +19,7 @@ public class CorsConfig {
 
         config.setAllowCredentials(true);
         config.setAllowedOrigins(List.of(
-                "http://localhost:5176" // Vite frontend
+                "http://localhost:5173" // Vite frontend
         ));
 
         config.setAllowedMethods(List.of(
