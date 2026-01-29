@@ -1,8 +1,10 @@
 package com.healthcare.personal_health_monitoring.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import jakarta.persistence.Column;
 import lombok.Builder;
 import lombok.Data;
+import org.hibernate.annotations.Collate;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -48,4 +50,7 @@ public class PatientResponse {
     private boolean enabled;
     private String role;
     private LocalDate registrationDate;
+
+    @Column(name = "profile_image")
+    private String photoUrl;
 }
