@@ -1,8 +1,10 @@
 package com.healthcare.personal_health_monitoring.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import jakarta.persistence.Column;
 import lombok.Builder;
 import lombok.Data;
+import org.hibernate.annotations.Collate;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -25,6 +27,13 @@ public class PatientResponse {
     private Double weight;
     private String bloodType;
     private String postalCode;
+    private String patientId;
+    private String nationality;
+    private String maritalStatus;
+    private String occupation;
+    private String district;
+    private String address;
+    private String phone;
 
     private EmergencyContactDTO primaryContact;
     private EmergencyContactDTO secondaryContact;
@@ -37,4 +46,11 @@ public class PatientResponse {
     private Set<String> allergies; // names
 
     private LocalDateTime updatedAt;
+
+    private boolean enabled;
+    private String role;
+    private LocalDate registrationDate;
+
+    @Column(name = "profile_image")
+    private String photoUrl;
 }

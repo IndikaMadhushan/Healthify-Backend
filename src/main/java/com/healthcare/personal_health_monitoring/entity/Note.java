@@ -28,5 +28,6 @@ public class Note {
     private String description;
 
     // Can be prescription OR report (PDF / image)
-    private String fileUrl;   // cloud/local storage URL
+    // cloud/local storage URL
+    private String fileUrl;
 }

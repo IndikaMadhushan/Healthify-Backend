@@ -1,13 +1,17 @@
 package com.healthcare.personal_health_monitoring.controller;
 
 import com.healthcare.personal_health_monitoring.dto.*;
+import com.healthcare.personal_health_monitoring.entity.Patient;
+import com.healthcare.personal_health_monitoring.repository.PatientRepository;
 import com.healthcare.personal_health_monitoring.service.PatientService;
+import com.healthcare.personal_health_monitoring.util.BmiUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -17,8 +21,9 @@ import java.util.List;
 public class PatientController {
 
     private final PatientService patientService;
+    private final PatientRepository patientRepository;
 
-    // Create patient (if you prefer registration via /auth/register you can remove this)
+    // Create patient - if we want to create via /auth/register ignore this
     @PostMapping
     public ResponseEntity<PatientResponse> create(@Valid @RequestBody PatientCreateRequest req) {
         PatientResponse resp = patientService.createPatient(req);
@@ -60,8 +65,29 @@ public class PatientController {
         return ResponseEntity.ok(resp);
     }
 
+
+    @PostMapping("/{id}/profile-image")
+    @PreAuthorize("hasRole('PATIENT')")
+    public ResponseEntity<String> uploadProfileImage(
+            @PathVariable Long id,
+            @RequestPart("image") MultipartFile image,
+            Authentication auth
+    ) {
+        // ensure patient uploads only their own image
+        Patient patient = patientRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Patient not found"));
+
+        if (!patient.getUser().getEmail().equals(auth.getName())) {
+            return ResponseEntity.status(403).build();
+        }
+
+        String imageUrl = patientService.uploadProfileImage(id, image);
+        return ResponseEntity.ok(imageUrl);
+    }
+
+
     // List all patients (doctor/admin)
-    @GetMapping
+    @GetMapping("/all")
     @PreAuthorize("hasRole('DOCTOR') or hasRole('ADMIN')")
     public ResponseEntity<List<PatientResponse>> listAll() {
         return ResponseEntity.ok(patientService.getAllPatients());
@@ -74,4 +100,22 @@ public class PatientController {
         patientService.deletePatient(id);
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/{patientId}/bmi")
+    public BmiResponse getBmiDetails(@PathVariable Long patientId) {
+
+        Patient patient = patientRepository.findById(patientId)
+                .orElseThrow(() -> new RuntimeException("Patient not found"));
+
+        if (patient.getHeight() == null || patient.getWeight() == null) {
+            return new BmiResponse(null, "NOT_AVAILABLE", "Please update height and weight.");
+        }
+
+        double bmi = BmiUtil.calculateBmi(patient.getWeight(), patient.getHeight());
+        String category = BmiUtil.getBmiCategory(bmi);
+        String tip = BmiUtil.getHealthTip(category);
+
+        return new BmiResponse(bmi, category, tip);
+    }
+
 }

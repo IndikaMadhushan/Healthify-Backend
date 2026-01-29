@@ -3,11 +3,16 @@ package com.healthcare.personal_health_monitoring.service.impl;
 import com.healthcare.personal_health_monitoring.dto.*;
 import com.healthcare.personal_health_monitoring.entity.*;
 import com.healthcare.personal_health_monitoring.repository.*;
+import com.healthcare.personal_health_monitoring.service.EmailService;
+import com.healthcare.personal_health_monitoring.service.FileUploadService;
 import com.healthcare.personal_health_monitoring.service.PatientService;
+import com.healthcare.personal_health_monitoring.util.AgeUtil;
+import com.healthcare.personal_health_monitoring.util.BmiUtil;
 import com.healthcare.personal_health_monitoring.util.PatientMapper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -26,6 +31,9 @@ public class PatientServiceImpl implements PatientService {
     private final AllergyRepository allergyRepository;
     private final SurgeryRepository surgeryRepository;
     private final NoteRepository noteRepository;
+    private final FileUploadService fileUploadService;
+    private final UserRepository userRepository;
+    private final EmailService emailService;
 
     @Override
     public PatientResponse createPatient(PatientCreateRequest request) {
@@ -70,13 +78,13 @@ public class PatientServiceImpl implements PatientService {
 
     @Override
     public PatientResponse updatePatient(Long id, PatientUpdateRequest request) {
-        Patient p = patientRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Patient not found: " + id));
+        Patient patient = patientRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Patient not found: " + id));
 
         // map permitted fields
-        PatientMapper.mapUpdateToEntity(request, p);
+        PatientMapper.mapUpdateToEntity(request, patient);
 
         // recalc age if DOB changed
-        if (request.getDateOfBirth() != null) setAgeFromDob(p);
+        if (request.getDateOfBirth() != null) setAgeFromDob(patient);
 
         // replace diseases if provided
         if (request.getDiseaseIds() != null) {
@@ -86,10 +94,10 @@ public class PatientServiceImpl implements PatientService {
                                 .orElseThrow(() -> new IllegalArgumentException("Disease not found: " + diseaseId));
                         PatientDisease pd = new PatientDisease();
                         pd.setDisease(d);
-                        pd.setPatient(p);
+                        pd.setPatient(patient);
                         return pd;
                     }).collect(Collectors.toList());
-            p.setDiseases(new ArrayList<>(list));
+            patient.setDiseases(new ArrayList<>(list));
         }
 
         // replace allergies if provided
@@ -100,10 +108,15 @@ public class PatientServiceImpl implements PatientService {
                                 .orElseThrow(() -> new IllegalArgumentException("Allergy not found: " + allergyId));
                         PatientAllergy pa = new PatientAllergy();
                         pa.setAllergy(a);
-                        pa.setPatient(p);
+                        pa.setPatient(patient);
                         return pa;
                     }).collect(Collectors.toList());
-            p.setAllergies(new ArrayList<>(list));
+            patient.setAllergies(new ArrayList<>(list));
+        }
+        //calculate age and set it
+
+        if(request.getDateOfBirth() != null) {
+            patient.setAge(AgeUtil.calculateAge(request.getDateOfBirth()));
         }
 
         // optional: link surgeries/notes by ids (replace)
@@ -111,18 +124,28 @@ public class PatientServiceImpl implements PatientService {
             List<Surgery> list = request.getSurgeryIds().stream()
                     .map(sid -> surgeryRepository.findById(sid).orElseThrow(() -> new IllegalArgumentException("Surgery not found: " + sid)))
                     .collect(Collectors.toList());
-            p.setSurgeries(new ArrayList<>(list));
+            patient.setSurgeries(new ArrayList<>(list));
         }
 
         if (request.getNoteIds() != null) {
             List<Note> list = request.getNoteIds().stream()
                     .map(nid -> noteRepository.findById(nid).orElseThrow(() -> new IllegalArgumentException("Note not found: " + nid)))
                     .collect(Collectors.toList());
-            p.setNotes(new ArrayList<>(list));
+            patient.setNotes(new ArrayList<>(list));
         }
 
-        p.setUpdatedAt(LocalDateTime.now());
-        Patient saved = patientRepository.save(p);
+        // calculate bmi value
+        if (patient.getHeight() != null && patient.getWeight() != null) {
+            patient.setBmi(
+                    BmiUtil.calculateBmi(
+                            patient.getWeight(),
+                            patient.getHeight()
+                    )
+            );
+        }
+
+        patient.setUpdatedAt(LocalDateTime.now());
+        Patient saved = patientRepository.save(patient);
         return PatientMapper.toResponse(saved);
     }
 
@@ -164,10 +187,61 @@ public class PatientServiceImpl implements PatientService {
         patientRepository.deleteById(id);
     }
 
-    /* ---------------- helper ---------------- */
+    // helper
     private void setAgeFromDob(Patient p) {
         LocalDate dob = p.getDateOfBirth();
         if (dob != null) p.setAge(Period.between(dob, LocalDate.now()).getYears());
         else p.setAge(null);
     }
+
+    public List<Patient> searchPatients(String query){
+
+        //if the qury looks like generated patient id
+        if(query.startsWith("PAT-")) {
+            return patientRepository.findByPatientId(query)
+                    .map(List::of)
+                    .orElse(List.of());
+        }
+
+        //otherwise treat is as nic
+        return  patientRepository.findByNicContainingIgnoreCase(query);
+    }
+
+    @Override
+    public String uploadProfileImage(Long patientId, MultipartFile image) {
+        Patient patient = patientRepository.findById(patientId)
+                .orElseThrow(() -> new RuntimeException("Patient not found"));
+
+        String imageUrl = fileUploadService.uploadFile(image);
+        patient.setPhotoUrl(imageUrl);
+
+        patientRepository.save(patient);
+        return imageUrl;
+    }
+
+    @Override
+    @Transactional
+    public void togglePatientStatus(String patientId) {
+        // Find patient by patientId
+        Patient patient = patientRepository.findByPatientId(patientId)
+                .orElseThrow(() -> new RuntimeException("Patient not found with ID: " + patientId));
+
+        // Get associated user
+        User user = patient.getUser();
+        if (user == null) {
+            throw new RuntimeException("User not found for patient: " + patientId);
+        }
+
+        // Toggle enabled status
+        user.setEnabled(!user.isEnabled());
+        userRepository.save(user);
+
+        // Optional: Send notification email
+         if (user.isEnabled()) {
+             emailService.sendAccountActivatedEmail(user.getEmail(), patient.getFullName());
+         } else {
+             emailService.sendAccountDeactivatedEmail(user.getEmail(), patient.getFullName());
+         }
+    }
+
 }
