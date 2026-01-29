@@ -26,6 +26,14 @@ public class User {
     private UserRole role; // PATIENT, DOCTOR, ADMIN
     private boolean enabled = true;
 
+    @Column(name = "email_verified", nullable = false)
+    private boolean emailVerified = false;
+    //otp verification part
+    @Column(name = "email_otp")
+    private String emailOtp;
+    @Column(name = "otp_generated_at", nullable = false)
+    private LocalDateTime otpGeneratedAt;
+
     @Column(nullable=false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 }

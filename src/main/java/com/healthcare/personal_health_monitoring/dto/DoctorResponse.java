@@ -1,14 +1,18 @@
 package com.healthcare.personal_health_monitoring.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class DoctorResponse {
 
     // internal DB id (mostly for admin use)
@@ -25,6 +29,11 @@ public class DoctorResponse {
 
     private String specialization;
     private String licenseNumber;
+    private String verificationDocUrl;
+
+
+    private String gender;
+    private String hospital;
 
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate dateOfBirth;
@@ -35,4 +44,7 @@ public class DoctorResponse {
     private String photoUrl;
 
     private LocalDateTime joinedDate;
+
+    private Boolean enabled;
+    private String role;
 }

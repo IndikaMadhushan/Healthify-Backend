@@ -45,14 +45,23 @@ public class Patient  {
 
     @Column(nullable=true)
     private String phone;
+
+    @Column(nullable = true)
+    private String maritalStatus;
+    @Column(nullable = true)
+    private String occupation;
     @Column(nullable=true)
     private String district;
+    @Column(nullable = true)
+    private String address;
+//    @Column(nullable=true)
+//    private String province;
     @Column(nullable=true)
-    private String province;
-    @Column(nullable=true)
-    private String country;
+    private String nationality;
+    @Column(nullable = false)
     private LocalDate dateOfBirth;
-    @Column(name = "age")
+
+    @Column(name = "age", nullable = false)
     private Integer age;
 
     private String gender;
@@ -60,10 +69,16 @@ public class Patient  {
     private Double weight;
     private String bloodType;
 
+    private String photoUrl;
 
-    // ============================
+
+    @Column(name = "bmi")
+    private Double bmi;
+
+
+
     // FAMILY BACKGROUND
-    // ============================
+
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "name", column = @Column(name = "father_name")),
@@ -90,9 +105,9 @@ public class Patient  {
     @CollectionTable(name = "siblings", joinColumns = @JoinColumn(name = "patient_id"))
     private List<FamilyMember> siblings;
 
-    // ============================
+
     // EMERGENCY CONTACTS
-    // ============================
+
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "name", column = @Column(name = "primary_contact_name")),
@@ -109,9 +124,9 @@ public class Patient  {
     })
     private EmergencyContact secondaryContact;
 
-    // ============================
+
     // MAPPED CHILD TABLES
-    // ============================
+
     @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL)
     private List<PatientDisease> diseases;
 

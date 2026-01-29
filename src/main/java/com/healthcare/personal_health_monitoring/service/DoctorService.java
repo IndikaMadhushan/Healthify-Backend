@@ -1,6 +1,8 @@
 package com.healthcare.personal_health_monitoring.service;
 
+import com.healthcare.personal_health_monitoring.dto.DoctorProfileResponse;
 import com.healthcare.personal_health_monitoring.dto.DoctorResponse;
+import com.healthcare.personal_health_monitoring.dto.DoctorUpdateRequest;
 import com.healthcare.personal_health_monitoring.entity.Doctor;
 
 import java.util.List;
@@ -14,4 +16,8 @@ public interface DoctorService {
     Optional<Doctor> getDoctorByNic(String nic);
     List<Doctor> getAllDoctors();
     void deleteDoctor(Long id);
+    DoctorProfileResponse getMyProfile();
+    DoctorProfileResponse updateMyProfile(DoctorUpdateRequest request);
+    void toggleDoctorStatus(String doctorId);
+    List<DoctorResponse> getPendingDoctors();
 }

@@ -18,5 +18,9 @@ public class Surgery {
 
     private String description;
 
+    private String hospital;
+
+    private String sugeryComplication;
+
     private LocalDate surgeryDate;
 }

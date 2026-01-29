@@ -12,12 +12,18 @@ import com.healthcare.personal_health_monitoring.repository.PatientRepository;
 import com.healthcare.personal_health_monitoring.repository.UserRepository;
 import com.healthcare.personal_health_monitoring.security.JWTUtil;
 import com.healthcare.personal_health_monitoring.service.AuthService;
+import com.healthcare.personal_health_monitoring.service.EmailService;
+import com.healthcare.personal_health_monitoring.service.EmailValidationService;
+import com.healthcare.personal_health_monitoring.service.FileUploadService;
 import com.healthcare.personal_health_monitoring.service.IdGeneratorService;
+import com.healthcare.personal_health_monitoring.util.AgeUtil;
+import com.healthcare.personal_health_monitoring.util.OtpGenerator;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.antlr.v4.runtime.misc.LogManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -40,14 +46,16 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JWTUtil jwtUtil;
     private final IdGeneratorService idGeneratorService;
+    private final FileUploadService fileUploadService;
+    private final EmailValidationService emailValidationService;
+    private final EmailService emailService;
 
 
     /**
-     * Registers a new user.
-     *
-     * - PATIENT → enabled immediately
-     * - DOCTOR  → disabled until admin approval
-     * - ADMIN   → already in the system
+     Registers a new user.
+        PATIENT → enabled immediately
+        DOCTOR  → disabled until admin approval
+        ADMIN   → already in the system
      */
     @Override
     @Transactional
@@ -71,25 +79,47 @@ public class AuthServiceImpl implements AuthService {
         user.setRole(UserRole.PATIENT);
         user.setEnabled(true);
 
-        userRepository.save(user);
+
 
         Patient patient = new Patient();
         patient.setUser(user);
         patient.setFullName(req.getFullName());
         patient.setDateOfBirth(req.getDateOfBirth());
+        patient.setAge(AgeUtil.calculateAge(req.getDateOfBirth()));
         patient.setPhone(req.getPhone());
+        patient.setGender(req.getGender());
+        //OTP generqtion part
+        String otp = OtpGenerator.generateOtp();
+        user.setEmailOtp(otp);
+        user.setOtpGeneratedAt(LocalDateTime.now());
+        user.setEmailVerified(false);
+
+
 
         patient.setPatientId(idGeneratorService.generatePatientCode());
 
         patient.setUpdatedAt(LocalDateTime.now());
 
+        if(!emailValidationService.isValidEmail(req.getEmail())){
+            throw new RuntimeException("Email does ot exist or invalid");
+        }
+
         patientRepository.save(patient);
+
+
+
+        userRepository.save(user);
+
+        emailService.sendOtpEmail(user.getEmail(), otp);
 
     }
 
-    @Override
+
     @Transactional
-    public void registerDoctor(DoctorRegisterRequest req){
+    public void registerDoctor(
+            DoctorRegisterRequest req,
+            MultipartFile verificationDoc
+    ){
         // to Prevent duplicate emails
         if (userRepository.findByEmail(req.getEmail()).isPresent()) {
             throw new IllegalArgumentException("Email already in use. Use another Email.");
@@ -104,6 +134,8 @@ public class AuthServiceImpl implements AuthService {
             throw new IllegalArgumentException("Licence is already registered as a doctor.");
         }
 
+        //create user
+
         User user = new User();
         user.setEmail(req.getEmail());
         user.setPassword(passwordEncoder.encode(req.getPassword()));
@@ -112,17 +144,41 @@ public class AuthServiceImpl implements AuthService {
 
         userRepository.save(user);
 
+        //upload verification document
+        String docUrl = fileUploadService.uploadFile(verificationDoc);
+
         Doctor doctor = new Doctor();
         doctor.setUser(user);
         doctor.setFullName(req.getFullName());
+        doctor.setGender(req.getGender());
+        doctor.setSpecialization(req.getSpecialization());
+        doctor.setHospital(req.getHospital());
+        doctor.setGender(req.getGender());
+
         doctor.setLicenseNumber(req.getLicenseNumber());
         doctor.setDateOfBirth(req.getDateOfBirth());
-        doctor.setPhone(req.getPhone());
+        doctor.setAge(AgeUtil.calculateAge(req.getDateOfBirth()));
+
         doctor.setSpecialization(req.getSpecialization());
+        doctor.setVerificationDocUrl(docUrl);
 
         doctor.setDoctorId(idGeneratorService.generateDoctorCode());
 
+        if(!emailValidationService.isValidEmail(req.getEmail())){
+            throw new RuntimeException("Email does ot exist or invalid");
+        }
+
         doctorRepository.save(doctor);
+
+        //OTP generqtion part
+        String otp = OtpGenerator.generateOtp();
+        user.setEmailOtp(otp);
+        user.setOtpGeneratedAt(LocalDateTime.now());
+        user.setEmailVerified(false);
+
+        userRepository.save(user);
+
+        emailService.sendOtpEmail(user.getEmail(), otp);
     }
 
 
@@ -139,10 +195,17 @@ public class AuthServiceImpl implements AuthService {
             throw new RuntimeException("Invalid credentials");
         }
 
+        //block until the email validation
+        if(!user.isEmailVerified()){
+            throw new RuntimeException("Please verify you email before log in");
+        }
+
         // Block disabled accounts
         if (!user.isEnabled()) {
             throw new RuntimeException("Account not enabled. Contact admin.");
         }
+
+
 
         // Generate JWT
         String token = jwtUtil.generateToken(
@@ -151,6 +214,11 @@ public class AuthServiceImpl implements AuthService {
         );
 
         return new AuthResponse(token);
+    }
+
+    @Override
+    public String encodePassword(String rawPassword) {
+        return passwordEncoder.encode(rawPassword);
     }
 
 
@@ -173,6 +241,29 @@ public class AuthServiceImpl implements AuthService {
     public List<User> getPendingDoctors() {
 
         return userRepository.findByRoleAndEnabled(UserRole.DOCTOR, false);
+    }
+
+    // Admin rejects a doctor registration
+
+    @Transactional
+    public void rejectDoctor(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (user.getRole() != UserRole.DOCTOR) {
+            throw new RuntimeException("Only doctor accounts can be rejected");
+        }
+
+        // Find associated doctor record
+        Doctor doctor = doctorRepository.findByUserEmail(user.getEmail())
+                .orElseThrow(() -> new RuntimeException("Doctor record not found"));
+
+        // Delete doctor and user records
+        doctorRepository.delete(doctor);
+        userRepository.delete(user);
+
+        // Optional: Send rejection email
+        emailService.sendRejectionEmail(user.getEmail(), doctor.getFullName());
     }
 
 }

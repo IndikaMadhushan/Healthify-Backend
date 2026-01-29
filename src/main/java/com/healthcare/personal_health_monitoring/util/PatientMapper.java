@@ -2,6 +2,8 @@ package com.healthcare.personal_health_monitoring.util;
 
 import com.healthcare.personal_health_monitoring.dto.*;
 import com.healthcare.personal_health_monitoring.entity.*;
+
+import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -53,7 +55,10 @@ public class PatientMapper {
         return PatientResponse.builder()
                 .id(p.getId())
                 .fullName(p.getFullName())
-                .email(p.getEmail())
+                .email(p.getUser().getEmail())
+                .enabled(p.getUser().isEnabled())
+                .role(p.getUser().getRole().name())
+                .registrationDate(p.getUser().getCreatedAt().toLocalDate())
                 .nic(p.getNic())
                 .dateOfBirth(p.getDateOfBirth())
                 .age(p.getAge())
@@ -70,7 +75,16 @@ public class PatientMapper {
                 .diseases(p.getDiseases() == null ? Set.of() : p.getDiseases().stream().map(pd -> pd.getDisease().getName()).collect(Collectors.toSet()))
                 .allergies(p.getAllergies() == null ? Set.of() : p.getAllergies().stream().map(pa -> pa.getAllergy().getName()).collect(Collectors.toSet()))
                 .updatedAt(p.getUpdatedAt())
+                .patientId(p.getPatientId())
+                .photoUrl(p.getPhotoUrl())
+                .maritalStatus(p.getMaritalStatus())
+                .nationality(p.getNationality())
+                .occupation(p.getOccupation())
+                .district(p.getDistrict())
+                .address(p.getAddress())
+                .phone(p.getPhone())
                 .build();
+
     }
 
     private static EmergencyContact toEmergencyEntity(EmergencyContactDTO d) {
@@ -111,5 +125,16 @@ public class PatientMapper {
         d.setCauseOfDeath(f.getCauseOfDeath());
         d.setDiseases(f.getDiseases());
         return d;
+    }
+
+
+    public static PatientSearchResponse toSearchResponse(Patient p){
+        return new PatientSearchResponse(
+                p.getId(),
+                p.getPatientId(),
+                p.getFullName(),
+                p.getNic(),
+                p.getGender()
+        );
     }
 }

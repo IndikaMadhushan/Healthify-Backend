@@ -19,7 +19,7 @@ public class Report {
     private String reportType;
     private LocalDate reportDate;
 
-    private String fileUrl; // <-- ADDED
+    private String fileUrl;
 
     @ManyToOne
     @JoinColumn(name = "patient_id")

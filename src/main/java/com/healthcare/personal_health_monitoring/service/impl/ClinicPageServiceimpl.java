@@ -251,6 +251,7 @@ public class ClinicPageServiceimpl implements ClinicPageService {
     public ClinicPageDTO getClinicPageData(int clinicPageId) {
 
         //  Get clinic page
+        // Get clinic page
         ClinicPage clinicPage = clinicPageRepo.findById(clinicPageId)
                 .orElseThrow(() -> new RuntimeException("Clinic page not found"));
 

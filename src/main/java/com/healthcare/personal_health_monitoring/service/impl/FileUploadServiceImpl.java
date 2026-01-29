@@ -43,7 +43,7 @@ public class FileUploadServiceImpl implements FileUploadService {
             );
 
 
-            return "/uploads/" + fileName;  // URL to store in DB
+            return "http://localhost:8080/uploads/" + fileName;  // URL to store in DB
 
         } catch (Exception e) {
             throw new RuntimeException("File upload failed!");
