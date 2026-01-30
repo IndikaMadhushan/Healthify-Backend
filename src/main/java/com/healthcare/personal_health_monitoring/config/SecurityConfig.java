@@ -41,11 +41,13 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/audit-logs/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/metrics/**").hasAnyRole("PATIENT", "DOCTOR")
                         .requestMatchers("/api/doctors/patients/**").hasRole("DOCTOR")
-                        .requestMatchers("/api/reminders/**").hasRole("PATIENT")
-                        .requestMatchers("/api/appointments/**").hasRole("PATIENT")
-                        .requestMatchers("/api/reminders/other/**").hasRole("PATIENT")
-                        .requestMatchers("/api/reminders/period/**").hasRole("PATIENT")
-                       // .requestMatchers("/api/metrics/**").hasRole("PATIENT")
+//                        .requestMatchers("/api/reminders/**").hasRole("PATIENT")
+//                        .requestMatchers("/api/appointments/**").hasRole("PATIENT")
+//                        .requestMatchers("/api/reminders/other/**").hasRole("PATIENT")
+//                        .requestMatchers("/api/reminders/period/**").hasRole("PATIENT")
+                        .requestMatchers("/api/ui/reminders/**").hasRole("PATIENT")
+
+                        // .requestMatchers("/api/metrics/**").hasRole("PATIENT")
                         .anyRequest().authenticated()
                 )
 

@@ -42,6 +42,7 @@ public class PatientMapper {
         if (r.getWeight() != null) p.setWeight(r.getWeight());
         if (r.getBloodType() != null) p.setBloodType(r.getBloodType());
         if (r.getPostalCode() != null) p.setPostalCode(r.getPostalCode());
+        if(r.getNationality() != null) p.setNationality(r.getNationality());
 
         if (r.getPrimaryContact() != null) p.setPrimaryContact(toEmergencyEntity(r.getPrimaryContact()));
         if (r.getSecondaryContact() != null) p.setSecondaryContact(toEmergencyEntity(r.getSecondaryContact()));
