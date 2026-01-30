@@ -1,15 +1,8 @@
 package com.healthcare.personal_health_monitoring.scheduler;
 
-import com.healthcare.personal_health_monitoring.entity.AppointmentReminder;
-import com.healthcare.personal_health_monitoring.entity.MedicineReminder;
-import com.healthcare.personal_health_monitoring.entity.OtherReminder;
-import com.healthcare.personal_health_monitoring.entity.PeriodReminder;
-import com.healthcare.personal_health_monitoring.repository.AppointmentReminderRepository;
-import com.healthcare.personal_health_monitoring.repository.MedicineReminderRepository;
-import com.healthcare.personal_health_monitoring.repository.OtherReminderRepository;
-import com.healthcare.personal_health_monitoring.repository.PeriodReminderRepository;
+import com.healthcare.personal_health_monitoring.entity.*;
+import com.healthcare.personal_health_monitoring.repository.*;
 import com.healthcare.personal_health_monitoring.service.EmailService;
-import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -23,115 +16,90 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ReminderScheduler {
 
-    private final MedicineReminderRepository medicineReminderRepository;
-    private final AppointmentReminderRepository appointmentReminderRepository;
-    private final OtherReminderRepository otherReminderRepository;
-    private final PeriodReminderRepository periodReminderRepository;
+    private final UiMedicineReminderRepository medicineRepo;
+    private final UiAppointmentReminderRepository appointmentRepo;
+    private final UiOtherReminderRepository otherRepo;
+    private final PeriodTrackerRepository periodRepo;
     private final EmailService emailService;
 
-    @Scheduled(fixedRate = 60000) // every 60 second
-    public void checkAndReminders(){
-        List<MedicineReminder> reminders = medicineReminderRepository.findByActiveTrue();
+    // Every minute
+    @Scheduled(fixedRate = 60000)
+    public void sendReminders() {
 
-        LocalTime now = LocalTime.now();
         LocalDate today = LocalDate.now();
+        LocalTime now = LocalTime.now().withSecond(0).withNano(0);
 
+        /* =====================
+           MEDICINE REMINDERS
+        ===================== */
+        for (UiMedicineReminder r : medicineRepo.findAll()) {
 
-        //       Medicine reminder
-        for (MedicineReminder reminder : reminders) {
-            if(reminder.getReminderType().name().equals("DAILY")){
-                if(reminder.getTime().equals(now.withSecond(0).withNano(0))){
-                    String email = reminder.getPatient().getUser().getEmail();
-                    emailService.sendReminderEmail(
-                            email,
-                            reminder.getMedicineName(),
-                            reminder.getTime().toString()
-                    );
+            if (r.getTime() == null) continue;
 
-                }
-
-                if(reminder.getReminderType().name().equals("SPECIFIC_DATE")){
-                    if(reminder.getSpecificDate() != null  &&
-                          reminder.getSpecificDate().equals(today) &&
-                            reminder.getTime().equals(now.withSecond(0).withNano(0))){
-
-                        String email = reminder.getPatient().getUser().getEmail();
-                        emailService.sendReminderEmail(email, reminder.getMedicineName(), reminder.getTime().toString());
-                    }
-                }
-            }
-        }
-
-        // for appointment reminder
-
-        List<AppointmentReminder> appointments = appointmentReminderRepository.findAll();
-
-        for (AppointmentReminder appt : appointments) {
-            if (!appt.isCompleted()
-                    && appt.getAppointmentDate().isEqual(today)
-                    && appt.getAppointmentTime().equals(now)){
-
-                String email = appt.getPatient().getUser().getEmail();
-
-                emailService.sendAppointmentReminderEmail (
-                        email,
-                        appt.getDoctorName(),
-                        appt.getHospital(),
-                        appt.getAppointmentTime().toString()
+            if (r.getTime().equals(now)) {
+                emailService.sendReminderEmail(
+                        r.getPatient().getUser().getEmail(),
+                        r.getMedicineName(),
+                        r.getTime().toString()
                 );
             }
         }
 
-        // other reminders
+        /* =====================
+           APPOINTMENT REMINDERS
+        ===================== */
+        for (UiAppointmentReminder appt : appointmentRepo.findByCompletedFalse()) {
 
-        List<OtherReminder> others = otherReminderRepository.findByActiveTrue();
+            if (appt.getAppointmentDate().isEqual(today)
+                    && appt.getTime().equals(now)) {
 
-        for(OtherReminder reminder : others) {
-            if(reminder.getReminderType().equals("DAILY")
-                && reminder.getTime().equals(now)
-            ){
-                String email = reminder.getPatient().getUser().getEmail();
+                emailService.sendAppointmentReminderEmail(
+                        appt.getPatient().getUser().getEmail(),
+                        appt.getDoctor(),
+                        appt.getLocation(),
+                        appt.getTime().toString()
+                );
+            }
+        }
+
+        /* =====================
+           OTHER REMINDERS
+        ===================== */
+        for (UiOtherReminder r : otherRepo.findAll()) {
+
+            if (!r.getReminderDate().isEqual(today)) continue;
+
+            LocalTime reminderTime =
+                    r.getTime() != null ? r.getTime() : LocalTime.of(8, 0);
+
+            if (reminderTime.equals(now)) {
                 emailService.sendOtherReminderEmail(
-                        email,
-                        reminder.getNote(),
-                        reminder.getTime().toString()
-                );
-            }
-
-            if(reminder.getReminderType().equals("SPECIFIC_DATE")
-                    && reminder.getSpecificDate() != null
-                    && reminder.getSpecificDate().equals(today)
-                    && reminder.getTime().equals(now)
-            ){
-                String email = reminder.getPatient().getUser().getEmail();
-                emailService.sendOtherReminderEmail(
-                        email,
-                        reminder.getNote(),
-                        reminder.getTime().toString()
+                        r.getPatient().getUser().getEmail(),
+                        r.getTitle(),
+                        reminderTime.toString()
                 );
             }
         }
 
-        // period reminder for females
+        /* =====================
+           PERIOD REMINDERS
+        ===================== */
+        for (PeriodTracker tracker : periodRepo.findByActiveTrue()) {
 
-        List<PeriodReminder> periods = periodReminderRepository.findByActiveTrue();
+            LocalDate nextPeriod =
+                    tracker.getLastPeriodDate()
+                            .plusDays(tracker.getCycleLength());
 
-        for(PeriodReminder reminder : periods){
-            LocalDate nextDate = reminder.getNextPeriodDate();
+            long daysLeft = ChronoUnit.DAYS.between(today, nextPeriod);
 
-            Long daysLeft = ChronoUnit.DAYS.between(LocalDate.now(), nextDate);
-
-            if(daysLeft == 2 || daysLeft == 1 || daysLeft == 0 ){
-                String email = reminder.getPatient().getUser().getEmail();
-
+            if (daysLeft == 2 || daysLeft == 1) {
                 emailService.sendPeriodReminderEmail(
-                        email,
-                        "Period Reminder",
-                        "Your next period is on " + nextDate
+                        tracker.getPatient().getUser().getEmail(),
+                        "Upcoming Period Reminder",
+                        "Your next period is expected on " + nextPeriod
                 );
             }
         }
-
     }
-
 }
+
