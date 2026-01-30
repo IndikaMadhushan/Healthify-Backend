@@ -42,6 +42,7 @@ public class PatientMapper {
         if (r.getWeight() != null) p.setWeight(r.getWeight());
         if (r.getBloodType() != null) p.setBloodType(r.getBloodType());
         if (r.getPostalCode() != null) p.setPostalCode(r.getPostalCode());
+        if(r.getNationality() != null) p.setNationality(r.getNationality());
 
         if (r.getPrimaryContact() != null) p.setPrimaryContact(toEmergencyEntity(r.getPrimaryContact()));
         if (r.getSecondaryContact() != null) p.setSecondaryContact(toEmergencyEntity(r.getSecondaryContact()));
@@ -55,7 +56,10 @@ public class PatientMapper {
         return PatientResponse.builder()
                 .id(p.getId())
                 .fullName(p.getFullName())
-                .email(p.getEmail())
+                .email(p.getUser().getEmail())
+                .enabled(p.getUser().isEnabled())
+                .role(p.getUser().getRole().name())
+                .registrationDate(p.getUser().getCreatedAt().toLocalDate())
                 .nic(p.getNic())
                 .dateOfBirth(p.getDateOfBirth())
                 .age(p.getAge())
@@ -73,7 +77,15 @@ public class PatientMapper {
                 .allergies(p.getAllergies() == null ? Set.of() : p.getAllergies().stream().map(pa -> pa.getAllergy().getName()).collect(Collectors.toSet()))
                 .updatedAt(p.getUpdatedAt())
                 .patientId(p.getPatientId())
+                .photoUrl(p.getPhotoUrl())
+                .maritalStatus(p.getMaritalStatus())
+                .nationality(p.getNationality())
+                .occupation(p.getOccupation())
+                .district(p.getDistrict())
+                .address(p.getAddress())
+                .phone(p.getPhone())
                 .build();
+
     }
 
     private static EmergencyContact toEmergencyEntity(EmergencyContactDTO d) {

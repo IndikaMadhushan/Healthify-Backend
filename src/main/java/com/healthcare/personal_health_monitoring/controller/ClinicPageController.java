@@ -18,9 +18,9 @@ public class ClinicPageController {
     @Autowired
     private ClinicPageService clinicPageService;
 
+    //create a new clinic page
     @PostMapping(path = "/{clinic_book_id}")
     @PreAuthorize("hasRole('DOCTOR')")
-
     public ResponseEntity<StandardResponse> saveClinicPage(@PathVariable(value = "clinic_book_id") int clinicBookId, @RequestBody ClinicPageDTO clinicPageDTO,@AuthenticationPrincipal CustomUserDetails userDetails) {
         Long doctor_id = userDetails.getUser().getId();
         String message = clinicPageService.saveClinicPage(clinicBookId, clinicPageDTO, doctor_id);

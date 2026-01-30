@@ -58,6 +58,9 @@ public class ClinicPage {
     @OneToMany(mappedBy = "clinicPage",cascade = CascadeType.ALL,orphanRemoval = true)
     private List<Medication> medication;
 
+    private String UpdatedDoctor;
+
+
     @Column(nullable = false)
     private boolean patientApprovedForEdit = false;
 

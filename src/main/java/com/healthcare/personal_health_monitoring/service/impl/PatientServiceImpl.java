@@ -3,6 +3,8 @@ package com.healthcare.personal_health_monitoring.service.impl;
 import com.healthcare.personal_health_monitoring.dto.*;
 import com.healthcare.personal_health_monitoring.entity.*;
 import com.healthcare.personal_health_monitoring.repository.*;
+import com.healthcare.personal_health_monitoring.service.EmailService;
+import com.healthcare.personal_health_monitoring.service.FileUploadService;
 import com.healthcare.personal_health_monitoring.service.PatientService;
 import com.healthcare.personal_health_monitoring.util.AgeUtil;
 import com.healthcare.personal_health_monitoring.util.BmiUtil;
@@ -10,6 +12,7 @@ import com.healthcare.personal_health_monitoring.util.PatientMapper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -28,6 +31,9 @@ public class PatientServiceImpl implements PatientService {
     private final AllergyRepository allergyRepository;
     private final SurgeryRepository surgeryRepository;
     private final NoteRepository noteRepository;
+    private final FileUploadService fileUploadService;
+    private final UserRepository userRepository;
+    private final EmailService emailService;
 
     @Override
     public PatientResponse createPatient(PatientCreateRequest request) {
@@ -200,4 +206,42 @@ public class PatientServiceImpl implements PatientService {
         //otherwise treat is as nic
         return  patientRepository.findByNicContainingIgnoreCase(query);
     }
+
+    @Override
+    public String uploadProfileImage(Long patientId, MultipartFile image) {
+        Patient patient = patientRepository.findById(patientId)
+                .orElseThrow(() -> new RuntimeException("Patient not found"));
+
+        String imageUrl = fileUploadService.uploadFile(image);
+        patient.setPhotoUrl(imageUrl);
+
+        patientRepository.save(patient);
+        return imageUrl;
+    }
+
+    @Override
+    @Transactional
+    public void togglePatientStatus(String patientId) {
+        // Find patient by patientId
+        Patient patient = patientRepository.findByPatientId(patientId)
+                .orElseThrow(() -> new RuntimeException("Patient not found with ID: " + patientId));
+
+        // Get associated user
+        User user = patient.getUser();
+        if (user == null) {
+            throw new RuntimeException("User not found for patient: " + patientId);
+        }
+
+        // Toggle enabled status
+        user.setEnabled(!user.isEnabled());
+        userRepository.save(user);
+
+        // Optional: Send notification email
+         if (user.isEnabled()) {
+             emailService.sendAccountActivatedEmail(user.getEmail(), patient.getFullName());
+         } else {
+             emailService.sendAccountDeactivatedEmail(user.getEmail(), patient.getFullName());
+         }
+    }
+
 }

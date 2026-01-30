@@ -20,6 +20,14 @@ public class ConsultPage {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int consultId;
 
+    @ManyToOne
+    @JoinColumn(name = "DID", nullable = false)
+    private Doctor doctor;
+
+    @ManyToOne
+    @JoinColumn(name = "PID", nullable = false)
+    private Patient patient;
+
     @Column(columnDefinition = "TEXT")
     private String consultReason;
 

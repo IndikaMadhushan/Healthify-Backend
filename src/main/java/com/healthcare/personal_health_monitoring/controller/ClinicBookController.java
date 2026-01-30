@@ -19,14 +19,15 @@ public class ClinicBookController {
     @Autowired
     private ClinicBookService clinicBookService;
 
+    //create new clicnic boojk(only doctors)
     @PostMapping(path = "/{patient_id}")
     @PreAuthorize("hasRole('DOCTOR')")
-    public ResponseEntity<StandardResponse> saveClinicBook(
+    public ResponseEntity<StandardResponse> createClinicBook(
             @PathVariable(value = "patient_id") Long patientId,
             @RequestBody ClinicBookRequestDTO clinicBookRequestDTO,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long doctorId = userDetails.getUser().getId();
-        String message = clinicBookService.saveClinicBook(patientId, clinicBookRequestDTO, doctorId);
+        String message = clinicBookService.createClinicBook(patientId, clinicBookRequestDTO, doctorId);
 
         return new ResponseEntity<StandardResponse>(
                 new StandardResponse(201, "created", message),
@@ -36,9 +37,11 @@ public class ClinicBookController {
 
     }
 
+    //when doctor click edit but to edit reason or access
     @GetMapping(path = "/{clinicbook_id}")
-    public ResponseEntity<StandardResponse> getReason(@PathVariable(value = "clinicbook_id") int id) {
-        ClinicBookRequestDTO message = clinicBookService.getReason(id);
+    @PreAuthorize("hasRole('DOCTOR')")
+    public ResponseEntity<StandardResponse> getReasonAndReason(@PathVariable(value = "clinicbook_id") int id) {
+        ClinicBookRequestDTO message = clinicBookService.getReasonAndReason(id);
 
         return new ResponseEntity<StandardResponse>(
                 new StandardResponse(200, "OK", message),
@@ -48,10 +51,13 @@ public class ClinicBookController {
 
     }
 
+    //EDIT CLINIC BOOK CREATED REASON OR ACCESS BY DOCTOR.IF CREATED DOCTOE GIVE ALLOW ACCESS, ANY DOCTOR CAN EDIT.OTHERWISE CANNOT
     @PutMapping(path = "/{clinicbook_id}")
     @PreAuthorize("hasRole('DOCTOR')")
     public ResponseEntity<StandardResponse> updateReason(@RequestBody ClinicBookRequestDTO clinicBookRequestDTO, @PathVariable(value = "clinicbook_id") int bookid,@AuthenticationPrincipal CustomUserDetails userDetails) {
+
         Long doctorId = userDetails.getUser().getId();
+
 
         String message = clinicBookService.updateReason(clinicBookRequestDTO, bookid,doctorId );
 

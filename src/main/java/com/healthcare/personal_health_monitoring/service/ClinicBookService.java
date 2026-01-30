@@ -5,9 +5,9 @@ import com.healthcare.personal_health_monitoring.dto.ClinicBookRequestDTO;
 
 public interface ClinicBookService {
 
-    String  saveClinicBook(Long patientId, ClinicBookRequestDTO clinicBookRequestDTO, Long doctorId);
+    String  createClinicBook(Long patientId, ClinicBookRequestDTO clinicBookRequestDTO, Long doctorId);
 
-    ClinicBookRequestDTO getReason(int  id);
+    ClinicBookRequestDTO getReasonAndReason(int  id);
 
     String updateReason(ClinicBookRequestDTO clinicBookRequestDTO, int bookid,Long doctorId);
 

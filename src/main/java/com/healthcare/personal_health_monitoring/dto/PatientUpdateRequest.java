@@ -53,4 +53,6 @@ public class PatientUpdateRequest {
     // optional lists to link existing notes/surgeries if needed later
     private Set<Long> surgeryIds;
     private Set<Long> noteIds;
+
+    private String nationality;
 }

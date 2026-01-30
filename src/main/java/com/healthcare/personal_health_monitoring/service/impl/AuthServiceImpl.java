@@ -93,6 +93,11 @@ public class AuthServiceImpl implements AuthService {
         patient.setAge(AgeUtil.calculateAge(req.getDateOfBirth()));
         patient.setPhone(req.getPhone());
         patient.setGender(req.getGender());
+        //OTP generqtion part
+        String otp = OtpGenerator.generateOtp();
+        user.setEmailOtp(otp);
+        user.setOtpGeneratedAt(LocalDateTime.now());
+        user.setEmailVerified(false);
 
 
 
@@ -216,6 +221,11 @@ public class AuthServiceImpl implements AuthService {
         return new AuthResponse(token);
     }
 
+    @Override
+    public String encodePassword(String rawPassword) {
+        return passwordEncoder.encode(rawPassword);
+    }
+
 
     /**
      * Admin approves a doctor account
@@ -236,6 +246,29 @@ public class AuthServiceImpl implements AuthService {
     public List<User> getPendingDoctors() {
 
         return userRepository.findByRoleAndEnabled(UserRole.DOCTOR, false);
+    }
+
+    // Admin rejects a doctor registration
+
+    @Transactional
+    public void rejectDoctor(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (user.getRole() != UserRole.DOCTOR) {
+            throw new RuntimeException("Only doctor accounts can be rejected");
+        }
+
+        // Find associated doctor record
+        Doctor doctor = doctorRepository.findByUserEmail(user.getEmail())
+                .orElseThrow(() -> new RuntimeException("Doctor record not found"));
+
+        // Delete doctor and user records
+        doctorRepository.delete(doctor);
+        userRepository.delete(user);
+
+        // Optional: Send rejection email
+        emailService.sendRejectionEmail(user.getEmail(), doctor.getFullName());
     }
 
 }

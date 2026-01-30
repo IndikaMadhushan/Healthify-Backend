@@ -14,30 +14,31 @@ public class DoctorMapper {
 
     // ENTITY → DTO
 
-    public static DoctorResponse toResponse(Doctor d) {
-        if (d == null) return null;
+    public static DoctorResponse toResponse(Doctor doctor) {
+        if (doctor == null) return null;
 
-        return DoctorResponse.builder()
-                .id(d.getId())
-                .doctorId(d.getDoctorId())
-                .fullName(d.getFullName())
-                .email(d.getUser() != null ? d.getUser().getEmail() : null)
-                .nic(d.getNic())
-                .phone(d.getPhone())
-                .specialization(d.getSpecialization())
-                .licenseNumber(d.getLicenseNumber())
-                .dateOfBirth(d.getDateOfBirth())
-                .age(calculateAge(d.getDateOfBirth()))
-                .experience(d.getExperience())
-                .photoUrl(d.getPhotoUrl())
-                .joinedDate(d.getJoinedDate())
-                .build();
+        DoctorResponse response = new DoctorResponse();
+        response.setId(doctor.getId());
+        response.setDoctorId(doctor.getDoctorId());
+        response.setFullName(doctor.getFullName());
+        response.setNic(doctor.getNic());
+        response.setPhone(doctor.getPhone());
+        response.setGender(doctor.getGender());
+        response.setSpecialization(doctor.getSpecialization());
+        response.setHospital(doctor.getHospital());
+        response.setLicenseNumber(doctor.getLicenseNumber());
+        response.setAge(doctor.getAge());
+        response.setPhotoUrl(doctor.getPhotoUrl());
+        response.setVerificationDocUrl(doctor.getVerificationDocUrl());
+
+        if (doctor.getUser() != null) {
+            response.setEmail(doctor.getUser().getEmail());
+            response.setEnabled(doctor.getUser().isEnabled());
+            response.setRole(doctor.getUser().getRole().name());
+        }
+
+        return response;
     }
 
-    // HELPER
 
-    private static Integer calculateAge(LocalDate dob) {
-        if (dob == null) return null;
-        return Period.between(dob, LocalDate.now()).getYears();
-    }
 }

@@ -31,6 +31,7 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS,"/**").permitAll()
+                        .requestMatchers("/uploads/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/patients/**").hasAnyRole("PATIENT", "DOCTOR", "ADMIN")
                         .requestMatchers("/api/doctors/**").hasRole("DOCTOR")
@@ -40,11 +41,13 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/audit-logs/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/metrics/**").hasAnyRole("PATIENT", "DOCTOR")
                         .requestMatchers("/api/doctors/patients/**").hasRole("DOCTOR")
-                        .requestMatchers("/api/reminders/**").hasRole("PATIENT")
-                        .requestMatchers("/api/appointments/**").hasRole("PATIENT")
-                        .requestMatchers("/api/reminders/other/**").hasRole("PATIENT")
-                        .requestMatchers("/api/reminders/period/**").hasRole("PATIENT")
-                       // .requestMatchers("/api/metrics/**").hasRole("PATIENT")
+//                        .requestMatchers("/api/reminders/**").hasRole("PATIENT")
+//                        .requestMatchers("/api/appointments/**").hasRole("PATIENT")
+//                        .requestMatchers("/api/reminders/other/**").hasRole("PATIENT")
+//                        .requestMatchers("/api/reminders/period/**").hasRole("PATIENT")
+                        .requestMatchers("/api/ui/reminders/**").hasRole("PATIENT")
+
+                        // .requestMatchers("/api/metrics/**").hasRole("PATIENT")
                         .anyRequest().authenticated()
                 )
 

@@ -31,6 +31,13 @@ public class PatientResponseDTO {
     private FamilyMemberDTO father;
     private FamilyMemberDTO mother;
     private List<FamilyMemberDTO> siblings;
+    private String nationality;
+    private String maritalStatus;
+    private String occupation;
+    private String district;
+    private String address;
+    private String phone;
+    private String photoUrl;
 
     private Set<String> diseases;
     private Set<String> allergies;

@@ -11,4 +11,5 @@ public interface AuthService {
     void registerDoctor(DoctorRegisterRequest req,
                         MultipartFile verificationDoc);
     public AuthResponse login(String email, String password);
+    String encodePassword(String rawPassword);
 }
