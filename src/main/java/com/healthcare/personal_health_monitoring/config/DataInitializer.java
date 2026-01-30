@@ -10,6 +10,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.time.LocalDateTime;
+
 @Configuration
 @RequiredArgsConstructor
 public class DataInitializer implements CommandLineRunner {
@@ -30,24 +32,25 @@ public class DataInitializer implements CommandLineRunner {
            // admin.setNic("ADMIN001");
             admin.setPassword(passwordEncoder.encode("admin123"));
             admin.setRole(UserRole.ADMIN);
+            admin.setOtpGeneratedAt(LocalDateTime.now());
             admin.setEnabled(true); // Admin is always enabled
 
             userRepository.save(admin);
         }
 
         //  DOCTOR CREATION
-        if (userRepository.findByEmail("doctor@healthcare.com").isEmpty()) {
-
-            Doctor doctor = new Doctor();
-            doctor.setFullName("Dr. John Silva");
-            doctor.setEmail("doctor@healthcare.com");
-            doctor.setNic("DOC001");
-            doctor.setPass(passwordEncoder.encode("doctor123"));
-            doctor.setRole(UserRole.DOCTOR);
-            doctor.setEnabled(true); // Enabled manually for testing
-
-            doctorRepository.save(doctor);
-        }
+//        if (userRepository.findByEmail("doctor@healthcare.com").isEmpty()) {
+//
+//            Doctor doctor = new Doctor();
+//            doctor.setFullName("Dr. John Silva");
+//            doctor.setEmail("doctor@healthcare.com");
+//            doctor.setNic("DOC001");
+//            doctor.setPass(passwordEncoder.encode("doctor123"));
+//            doctor.setRole(UserRole.DOCTOR);
+//            doctor.setEnabled(true); // Enabled manually for testing
+//
+//            doctorRepository.save(doctor);
+//        }
     }
 
     @Bean

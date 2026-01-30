@@ -72,7 +72,7 @@ public class AuthController {
         if (user.getEmailOtp().equals(otp)) {
             user.setEmailVerified(true);
             user.setEmailOtp(null);
-            user.setOtpGeneratedAt(null);
+            //user.setOtpGeneratedAt(null);
             userRepository.save(user);
 
             //System.out.println("email verified");

@@ -78,6 +78,11 @@ public class AuthServiceImpl implements AuthService {
         user.setPassword(passwordEncoder.encode(req.getPassword()));
         user.setRole(UserRole.PATIENT);
         user.setEnabled(true);
+        //OTP generqtion part
+        String otp = OtpGenerator.generateOtp();
+        user.setEmailOtp(otp);
+        user.setOtpGeneratedAt(LocalDateTime.now());
+        user.setEmailVerified(false);
 
 
 
@@ -101,11 +106,7 @@ public class AuthServiceImpl implements AuthService {
 
         patientRepository.save(patient);
 
-        //OTP generqtion part
-        String otp = OtpGenerator.generateOtp();
-        user.setEmailOtp(otp);
-        user.setOtpGeneratedAt(LocalDateTime.now());
-        user.setEmailVerified(false);
+
 
         userRepository.save(user);
 

@@ -31,7 +31,7 @@ public class User {
     //otp verification part
     @Column(name = "email_otp")
     private String emailOtp;
-    @Column(name = "otp_generated_at", nullable = false)
+    @Column(name = "otp_generated_at", nullable = true)
     private LocalDateTime otpGeneratedAt;
 
     @Column(nullable=false, updatable = false)
