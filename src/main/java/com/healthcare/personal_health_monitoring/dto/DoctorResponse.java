@@ -32,6 +32,7 @@ public class DoctorResponse {
     private String verificationDocUrl;
 
 
+
     private String gender;
     private String hospital;
 
