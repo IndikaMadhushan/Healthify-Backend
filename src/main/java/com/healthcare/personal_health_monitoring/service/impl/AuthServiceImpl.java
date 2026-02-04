@@ -94,7 +94,7 @@ public class AuthServiceImpl implements AuthService {
         patient.setPhone(req.getPhone());
         patient.setGender(req.getGender());
         //OTP generqtion part
-        String otp = OtpGenerator.generateOtp();
+//        String otp = OtpGenerator.generateOtp();
         user.setEmailOtp(otp);
         user.setOtpGeneratedAt(LocalDateTime.now());
         user.setEmailVerified(false);
@@ -140,14 +140,17 @@ public class AuthServiceImpl implements AuthService {
         }
 
         //create user
-
         User user = new User();
         user.setEmail(req.getEmail());
         user.setPassword(passwordEncoder.encode(req.getPassword()));
         user.setRole(UserRole.DOCTOR);
         user.setEnabled(false); // Admin need to approve
 
-        userRepository.save(user);
+        // OTP generation part (must be set before persisting user)
+        String otp = OtpGenerator.generateOtp();
+        user.setEmailOtp(otp);
+        user.setOtpGeneratedAt(LocalDateTime.now());
+        user.setEmailVerified(false);
 
         //upload verification document
         String docUrl = fileUploadService.uploadFile(verificationDoc);
@@ -175,11 +178,7 @@ public class AuthServiceImpl implements AuthService {
 
         doctorRepository.save(doctor);
 
-        //OTP generqtion part
-        String otp = OtpGenerator.generateOtp();
-        user.setEmailOtp(otp);
-        user.setOtpGeneratedAt(LocalDateTime.now());
-        user.setEmailVerified(false);
+
 
         userRepository.save(user);
 

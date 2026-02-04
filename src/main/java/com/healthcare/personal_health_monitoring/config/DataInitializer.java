@@ -29,14 +29,29 @@ public class DataInitializer implements CommandLineRunner {
             User admin = new User();
             //admin.setFullName("System Admin");
             admin.setEmail("admin@healthcare.com");
-           // admin.setNic("ADMIN001");
+            // admin.setNic("ADMIN001");
             admin.setPassword(passwordEncoder.encode("admin123"));
             admin.setRole(UserRole.ADMIN);
             admin.setEmailVerified(true);
+            admin.setOtpGeneratedAt(LocalDateTime.now());
             admin.setEnabled(true); // Admin is always enabled
 
             userRepository.save(admin);
         }
+//
+//        //ADMIN CREATION
+//        if (userRepository.findByEmail("doctor@healthcare.com").isEmpty()) {
+//
+//            User doctor = new User();
+//            doctor.setEmail("doctor@healthcare.com");
+//            doctor.setPassword(passwordEncoder.encode("doctor123"));
+//            doctor.setRole(UserRole.DOCTOR);
+//            doctor.setEnabled(true);
+//            doctor.setEmailVerified(true); // manually verified for testing
+//            doctor.setOtpGeneratedAt(LocalDateTime.now());
+//
+//            userRepository.save(doctor);
+//        }
 
         //  DOCTOR CREATION
 //        if (userRepository.findByEmail("doctor@healthcare.com").isEmpty()) {
@@ -51,6 +66,30 @@ public class DataInitializer implements CommandLineRunner {
 //
 //            doctorRepository.save(doctor);
 //        }
+
+        if (userRepository.findByEmail("doctorhealth@healthcare.com").isEmpty()) {
+            User user = new User();
+            user.setEmail("doctorhealth@healthcare.com");
+            user.setPassword(passwordEncoder.encode("doctor123"));
+            user.setRole(UserRole.DOCTOR);
+            user.setEnabled(true);
+            user.setEmailVerified(true);
+            user.setOtpGeneratedAt(LocalDateTime.now());
+
+            Doctor doctor = new Doctor();
+            doctor.setUser(user); // VERY IMPORTANT (MapsId)
+            doctor.setFullName("Dr. John Silva");
+            doctor.setDoctorId("DOC001");
+            doctor.setGender("MALE");
+            doctor.setHospital("General Hospital Colombo");
+            doctor.setLicenseNumber("SLMC-123456");
+            doctor.setSpecialization("Cardiology");
+            doctor.setPhone("0771234567");
+            doctor.setCountry("Sri Lanka");
+
+            doctorRepository.save(doctor); // saves BOTH user + doctor
+        }
+
     }
 
     @Bean
