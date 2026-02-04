@@ -60,6 +60,10 @@ public class DataInitializer implements CommandLineRunner {
             repo.findById(SequenceType.DOCTOR)
                     .orElseGet(() -> repo.save(new IdSequence(SequenceType.DOCTOR, 1L)));
         };
+
+
+
+
     }
 
 }

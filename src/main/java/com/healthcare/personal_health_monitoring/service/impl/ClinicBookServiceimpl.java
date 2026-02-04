@@ -2,6 +2,7 @@ package com.healthcare.personal_health_monitoring.service.impl;
 
 
 import com.healthcare.personal_health_monitoring.dto.ClinicBookRequestDTO;
+import com.healthcare.personal_health_monitoring.dto.ClinicBookViewDTO;
 import com.healthcare.personal_health_monitoring.entity.AccessControlClinic;
 import com.healthcare.personal_health_monitoring.entity.ClinicBook;
 import com.healthcare.personal_health_monitoring.entity.Doctor;
@@ -11,13 +12,16 @@ import com.healthcare.personal_health_monitoring.repository.DoctorRepository;
 import com.healthcare.personal_health_monitoring.repository.PatientRepository;
 import com.healthcare.personal_health_monitoring.service.ClinicBookService;
 import jakarta.persistence.EntityNotFoundException;
+import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
 
 @Service
 
@@ -114,4 +118,123 @@ public class ClinicBookServiceimpl implements ClinicBookService {
         clinicBookRepo.delete(clinicBook);
         return "DELETED SUCCESSFULLY";
     }
+
+//    @Override
+//    public List<ClinicBookViewDTO> getClinicBookDetails(long patientId) {
+//        List<ClinicBook> cb = clinicBookRepo
+//                .findByPatient_Id(patientId)
+//                .orElseThrow(() -> new RuntimeException("Clinic book not found"));
+//
+//        Doctor doctor = cb.getDoctor(); // already available via relation
+//
+//        return new ClinicBookViewDTO(
+//                doctor.getFullName(),
+//                doctor.getSpecialization(),
+//                doctor.getLicenseNumber(),
+//                cb.getVisit_reason(),
+//                cb.getAccessControl().name(),
+//                cb.getUpdatedDoctor()== null
+//                        ? "Not updated yet"
+//                        : cb.getUpdatedDoctor().toString(),
+//                cb.getUpdatedTime() == null
+//                        ? "Not updated yet"
+//                        : cb.getUpdatedTime().toString()
+//        );
+//    }
+
+    @Override
+    public List<ClinicBookViewDTO> getClinicBookDetails(long patientId) {
+
+        List<ClinicBook> clinicBooks =
+                clinicBookRepo.findAllByPatient_Id(patientId);
+
+        if (clinicBooks.isEmpty()) {
+            throw new RuntimeException("No clinic books found for patient " + patientId);
+        }
+
+        return clinicBooks.stream().map(cb -> {
+
+            Doctor doctor = cb.getDoctor();
+
+            return new ClinicBookViewDTO(
+                    doctor != null ? doctor.getFullName() : "Not assigned",
+                    doctor != null ? doctor.getSpecialization() : "N/A",
+                    doctor != null ? doctor.getLicenseNumber() : "N/A",
+
+                    cb.getVisit_reason(),
+                    cb.getAccessControl().name(),
+
+                    cb.getUpdatedDoctor() == null
+                            ? "Not updated yet"
+                            : cb.getUpdatedDoctor(),
+
+                    cb.getUpdatedTime() == null
+                            ? "Not updated yet"
+                            : cb.getUpdatedTime().toString()
+            );
+
+        }).toList();
+    }
+
+    @Override
+    public List<ClinicBookViewDTO> getPatientClinicBookDetails(long patientId) {
+        List<ClinicBook> clinicBooks =
+                clinicBookRepo.findAllByPatient_Id(patientId);
+
+        if (clinicBooks.isEmpty()) {
+            throw new RuntimeException("No clinic books found for patient " + patientId);
+        }
+
+        return clinicBooks.stream().map(cb -> {
+
+            Doctor doctor = cb.getDoctor();
+
+            return new ClinicBookViewDTO(
+                    doctor != null ? doctor.getFullName() : "Not assigned",
+                    doctor != null ? doctor.getSpecialization() : "N/A",
+                    doctor != null ? doctor.getLicenseNumber() : "N/A",
+
+                    cb.getVisit_reason(),
+                    cb.getAccessControl().name(),
+
+                    cb.getUpdatedDoctor() == null
+                            ? "Not updated yet"
+                            : cb.getUpdatedDoctor(),
+
+                    cb.getUpdatedTime() == null
+                            ? "Not updated yet"
+                            : cb.getUpdatedTime().toString()
+            );
+
+        }).toList();
+    }
+
+
+//using test data
+//    @Override
+//    public ClinicBookViewDTO getClinicBookDetails(long patientId) {
+//
+//        ClinicBook cb = clinicBookRepo
+//                .findByPatient_Id(patientId)
+//                .orElseThrow(() -> new RuntimeException("Clinic book not found"));
+//
+//        System.out.println("ClinicBook found: " + cb.getId());
+//
+//        System.out.println("Doctor object: " + cb.getDoctor());
+//        System.out.println("Patient object: " + cb.getPatient());
+//        System.out.println("Visit reason: " + cb.getVisit_reason());
+//        System.out.println("Access control: " + cb.getAccessControl());
+//
+//        return new ClinicBookViewDTO(
+//                "TEST",
+//                "TEST",
+//                "TEST",
+//                cb.getVisit_reason(),
+//                cb.getAccessControl().name(),
+//                "TEST",
+//                "TEST"
+//        );
+//    }
+
+
 }
