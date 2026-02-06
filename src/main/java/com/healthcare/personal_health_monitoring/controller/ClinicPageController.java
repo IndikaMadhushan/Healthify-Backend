@@ -1,6 +1,8 @@
 package com.healthcare.personal_health_monitoring.controller;
 
 import com.healthcare.personal_health_monitoring.dto.ClinicPageDTO;
+import com.healthcare.personal_health_monitoring.dto.ClinicPrescriptionCardDTO;
+import com.healthcare.personal_health_monitoring.entity.ClinicPage;
 import com.healthcare.personal_health_monitoring.security.CustomUserDetails;
 import com.healthcare.personal_health_monitoring.service.ClinicPageService;
 import com.healthcare.personal_health_monitoring.util.StandardResponse;
@@ -10,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/cpage")
@@ -80,6 +84,13 @@ public class ClinicPageController {
         return ResponseEntity.ok(
                 clinicPageService.approveEditByPatient(clinicPageId)
         );
+    }
+
+    @GetMapping("/clinic-books/{clinicBookId}/pages")
+    public List<ClinicPrescriptionCardDTO> getClinicPages(
+            @PathVariable int clinicBookId) {
+
+        return clinicPageService.getPagesByClinicBook(clinicBookId);
     }
 
 }

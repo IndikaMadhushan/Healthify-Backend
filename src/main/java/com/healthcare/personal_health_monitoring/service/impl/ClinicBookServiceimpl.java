@@ -157,6 +157,8 @@ public class ClinicBookServiceimpl implements ClinicBookService {
             Doctor doctor = cb.getDoctor();
 
             return new ClinicBookViewDTO(
+                    cb.getId(),
+
                     doctor != null ? doctor.getFullName() : "Not assigned",
                     doctor != null ? doctor.getSpecialization() : "N/A",
                     doctor != null ? doctor.getLicenseNumber() : "N/A",
@@ -190,12 +192,16 @@ public class ClinicBookServiceimpl implements ClinicBookService {
             Doctor doctor = cb.getDoctor();
 
             return new ClinicBookViewDTO(
+                    cb.getId(),
                     doctor != null ? doctor.getFullName() : "Not assigned",
                     doctor != null ? doctor.getSpecialization() : "N/A",
                     doctor != null ? doctor.getLicenseNumber() : "N/A",
 
+
                     cb.getVisit_reason(),
                     cb.getAccessControl().name(),
+
+
 
                     cb.getUpdatedDoctor() == null
                             ? "Not updated yet"

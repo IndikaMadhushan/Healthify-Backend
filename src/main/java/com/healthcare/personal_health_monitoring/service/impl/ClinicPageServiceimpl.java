@@ -2,6 +2,7 @@ package com.healthcare.personal_health_monitoring.service.impl;
 
 import com.healthcare.personal_health_monitoring.dto.ClinicPageDTO;
 import com.healthcare.personal_health_monitoring.dto.ClinicPageResponseDTO;
+import com.healthcare.personal_health_monitoring.dto.ClinicPrescriptionCardDTO;
 import com.healthcare.personal_health_monitoring.dto.HealthMetricRequestSetDTO;
 import com.healthcare.personal_health_monitoring.entity.*;
 import com.healthcare.personal_health_monitoring.repository.*;
@@ -343,7 +344,25 @@ public class ClinicPageServiceimpl implements ClinicPageService {
                 .isAfter(LocalDateTime.now());
     }
 
+    public List<ClinicPrescriptionCardDTO> getPagesByClinicBook(int clinicBookId) {
 
+        List<ClinicPage> pages =
+                clinicPageRepo.findByClinicBook_Id(clinicBookId);
+
+        return pages.stream().map(page -> {
+
+            ClinicPrescriptionCardDTO dto = new ClinicPrescriptionCardDTO();
+
+            dto.setClinicPageId(page.getClinicPageId());
+            dto.setDoctorName(page.getUpdatedDoctor());     // ✅
+            dto.setUpdatedAt(page.getUpdatedDate());        // ✅
+            dto.setReason(page.getSubReason());              // ✅
+            dto.setCreatedAt(page.getPagecreatedDate());    // ✅
+
+            return dto;
+
+        }).toList();
+    }
 
 
 

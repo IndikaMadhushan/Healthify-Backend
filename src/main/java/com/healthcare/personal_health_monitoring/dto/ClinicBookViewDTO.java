@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ClinicBookViewDTO {
 
+    private int id;
     // Doctor data
     private String doctorFullName;
     private String specialization;
