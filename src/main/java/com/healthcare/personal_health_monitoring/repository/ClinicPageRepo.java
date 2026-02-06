@@ -16,5 +16,7 @@ import java.util.Optional;
 public interface ClinicPageRepo extends JpaRepository<ClinicPage,Integer>
 {
     List<ClinicPage> findByClinicBook_Id(int clinicBookId);
-   
+
+
+
 }

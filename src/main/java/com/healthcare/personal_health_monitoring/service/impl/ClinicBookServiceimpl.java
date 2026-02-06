@@ -242,5 +242,30 @@ public class ClinicBookServiceimpl implements ClinicBookService {
 //        );
 //    }
 
+    @Override
+    public ClinicBookViewDTO getClinicBookById(Integer clinicBookId) {
+
+        ClinicBook cb = clinicBookRepo.findById(clinicBookId)
+                .orElseThrow(() ->
+                        new RuntimeException("Clinic book not found with id " + clinicBookId)
+                );
+
+        Doctor doctor = cb.getDoctor();
+
+        return new ClinicBookViewDTO(
+                cb.getId(),
+                doctor != null ? doctor.getFullName() : "Not assigned",
+                doctor != null ? doctor.getSpecialization() : "N/A",
+                doctor != null ? doctor.getLicenseNumber() : "N/A",
+                cb.getVisit_reason(),
+                cb.getAccessControl().name(),
+                cb.getUpdatedDoctor() == null
+                        ? "Not updated yet"
+                        : cb.getUpdatedDoctor(),
+                cb.getUpdatedTime() == null
+                        ? "Not updated yet"
+                        : cb.getUpdatedTime().toString()
+        );
+    }
 
 }

@@ -19,4 +19,5 @@ public interface ClinicBookService {
     List<ClinicBookViewDTO> getClinicBookDetails(long patientId);
 
     List<ClinicBookViewDTO> getPatientClinicBookDetails(long patientId);
+    ClinicBookViewDTO getClinicBookById(Integer clinicBookId);
 }

@@ -115,6 +115,14 @@ public class ClinicBookController {
         return clinicBookService.getPatientClinicBookDetails(patientId);
     }
 
+    @GetMapping("clinic_data/{clinicBookId}")
+    public ResponseEntity<ClinicBookViewDTO> getClinicBookById(
+            @PathVariable Integer clinicBookId
+    ) {
+        return ResponseEntity.ok(
+                clinicBookService.getClinicBookById(clinicBookId)
+        );
+    }
 
 
 
