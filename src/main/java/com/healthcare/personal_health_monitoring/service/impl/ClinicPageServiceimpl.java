@@ -1,9 +1,6 @@
 package com.healthcare.personal_health_monitoring.service.impl;
 
-import com.healthcare.personal_health_monitoring.dto.ClinicPageDTO;
-import com.healthcare.personal_health_monitoring.dto.ClinicPageResponseDTO;
-import com.healthcare.personal_health_monitoring.dto.ClinicPrescriptionCardDTO;
-import com.healthcare.personal_health_monitoring.dto.HealthMetricRequestSetDTO;
+import com.healthcare.personal_health_monitoring.dto.*;
 import com.healthcare.personal_health_monitoring.entity.*;
 import com.healthcare.personal_health_monitoring.repository.*;
 import com.healthcare.personal_health_monitoring.service.ClinicPageService;
@@ -266,6 +263,11 @@ public class ClinicPageServiceimpl implements ClinicPageService {
                         PageType.CLINIC,
                         clinicPageId
                 );
+        clinicPageDTO.setPatientName(clinicPage.getClinicBook().getPatient().getFullName());
+        clinicPageDTO.setPatientGender(clinicPage.getClinicBook().getPatient().getGender());
+        clinicPageDTO.setPatientAge(clinicPage.getClinicBook().getPatient().getAge());
+        clinicPageDTO.setCreatedDoctor(clinicPage.getCreatedDoctor().getFullName());
+        clinicPageDTO.setSLMC(clinicPage.getCreatedDoctor().getLicenseNumber());
 
         //  Convert metrics → Map
         HealthMetricRequestSetDTO metricDTO = new HealthMetricRequestSetDTO();
@@ -362,6 +364,48 @@ public class ClinicPageServiceimpl implements ClinicPageService {
             return dto;
 
         }).toList();
+    }
+
+//    public List<ClinicPrescriptionCardListDTO> getClinicPagesByClinicBookId(int clinicBookId) {
+//
+//        List<ClinicPage> pages =
+//                clinicPageRepo.findByClinicBook_Id(clinicBookId);
+//
+//        return pages.stream().map(page -> {
+//
+//            return new ClinicPrescriptionCardListDTO(
+//                    page.getClinicPageId(),          // id
+//                    page.getClinicBook().getId(),    // clinicBookId
+//                    page.getPagecreatedDate().toString(),     // createdAt
+//                    page.getUpdatedDate().toString(),           // updatedAt
+//                    page.getUpdatedDoctor(),         // updatedBy
+//                    page.getSubReason(),              // reason
+//                    page.getUpdatedDoctor()          // createdDoctor
+//            );
+//
+//        }).toList();
+//    }
+
+    public List<ClinicPrescriptionCardListDTO> getClinicPagesByClinicBookId(int clinicBookId) {
+
+        List<ClinicPage> pages =
+                clinicPageRepo.findByClinicBook_Id(clinicBookId);
+
+        return pages.stream().map(page ->
+                new ClinicPrescriptionCardListDTO(
+                        page.getClinicPageId(),                 // id
+                        page.getClinicBook().getId(),           // clinicBookId
+                        page.getPagecreatedDate().toString(),   // createdAt
+
+                        page.getUpdatedDate() != null            // ✅ FIXED
+                                ? page.getUpdatedDate().toString()
+                                : null,
+
+                        page.getUpdatedDoctor(),                // updatedBy
+                        page.getSubReason(),                    // reason
+                        page.getUpdatedDoctor()                 // createdDoctor (temporary)
+                )
+        ).toList();
     }
 
 

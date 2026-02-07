@@ -13,6 +13,7 @@ import java.util.List;
 
 public class ClinicPageDTO {
 
+    private int clinicPageId;
     private String subReason;
 
     private String clinicExaming;
@@ -24,4 +25,12 @@ public class ClinicPageDTO {
     private Date nextClinic;
     private List<MedicationDTO> medication = new ArrayList<>();
     private HealthMetricRequestSetDTO healthMetricRequestSetDTO;
+    private String CreatedDoctor;
+    private String SLMC;
+
+
+    private String PatientName;
+    private Integer PatientAge;
+    private String PatientGender;
+
 }
