@@ -22,7 +22,7 @@ public class ConsultServiceImpl implements ConsultService {
     private ConsultRepo consultRepo;
 
     @Override
-    public List<ConsultCardRensponseDTO> getClinicPagesByClinicBookId(Long patientId) {
+    public List<ConsultCardRensponseDTO> getPatientPrescriptionCards(Long patientId) {
 
         List<ConsultPage> consultPages =
                 consultRepo.findAllByPatient_Id(patientId);
@@ -48,7 +48,6 @@ public class ConsultServiceImpl implements ConsultService {
                 ))
                 .toList();
     }
-
 
 
 

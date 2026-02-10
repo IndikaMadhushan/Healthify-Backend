@@ -10,6 +10,7 @@ import com.healthcare.personal_health_monitoring.security.CustomUserDetails;
 import com.healthcare.personal_health_monitoring.service.ConsultService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,11 +28,21 @@ public class ConsultController {
 
     //get all prescription card data by patient that logged
     @GetMapping(path="/get-by-patient")
+    @PreAuthorize("hasRole('PATIENT')")
     public ResponseEntity<List<ConsultCardRensponseDTO> > getPatientPrescriptionCards(@AuthenticationPrincipal CustomUserDetails userDetails)
     {
         Long patientId = userDetails.getUser().getId();
         return ResponseEntity.ok(
-                consultService.getClinicPagesByClinicBookId(patientId)
+                consultService.getPatientPrescriptionCards(patientId)
+        );
+    }
+
+    @GetMapping(path="/{patientId}")
+    @PreAuthorize("hasRole('DOCTOR')")
+    public ResponseEntity<List<ConsultCardRensponseDTO> > getPatientPrescriptionCardsByDoctor(@PathVariable long patientId)
+    {
+        return ResponseEntity.ok(
+                consultService.getPatientPrescriptionCards(patientId)
         );
     }
 
