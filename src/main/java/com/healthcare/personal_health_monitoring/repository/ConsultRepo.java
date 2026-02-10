@@ -13,6 +13,8 @@ import java.util.List;
 @EnableJpaRepositories
 public interface ConsultRepo extends JpaRepository<ConsultPage,Integer>{
     List<ConsultPage> findAllByPatient_Id(long patientId);
+    List<ConsultPage> findByPatient_id(Long id);
+
 }
 
 
