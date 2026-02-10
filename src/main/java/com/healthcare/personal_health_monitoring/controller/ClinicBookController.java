@@ -23,6 +23,8 @@ public class ClinicBookController {
     @Autowired
     private ClinicBookService clinicBookService;
 
+
+    //connected
     //create new clicnic boojk(only doctors)
     @PostMapping(path = "create/{patient_id}")
     @PreAuthorize("hasRole('DOCTOR')")
@@ -54,6 +56,7 @@ public class ClinicBookController {
         );
 
     }
+
 
     //EDIT CLINIC BOOK CREATED REASON OR ACCESS BY DOCTOR.IF CREATED DOCTOE GIVE ALLOW ACCESS, ANY DOCTOR CAN EDIT.OTHERWISE CANNOT
     @PutMapping(path = "/{clinicbook_id}")
