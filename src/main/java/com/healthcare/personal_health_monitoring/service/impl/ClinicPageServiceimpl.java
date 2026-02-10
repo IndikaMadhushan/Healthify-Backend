@@ -356,10 +356,10 @@ public class ClinicPageServiceimpl implements ClinicPageService {
             ClinicPrescriptionCardDTO dto = new ClinicPrescriptionCardDTO();
 
             dto.setClinicPageId(page.getClinicPageId());
-            dto.setDoctorName(page.getUpdatedDoctor());     // ✅
-            dto.setUpdatedAt(page.getUpdatedDate());        // ✅
-            dto.setReason(page.getSubReason());              // ✅
-            dto.setCreatedAt(page.getPagecreatedDate());    // ✅
+            dto.setDoctorName(page.getUpdatedDoctor());     //
+            dto.setUpdatedAt(page.getUpdatedDate());        //
+            dto.setReason(page.getSubReason());              //
+            dto.setCreatedAt(page.getPagecreatedDate());    //
 
             return dto;
 

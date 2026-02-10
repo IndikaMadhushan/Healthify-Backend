@@ -1,14 +1,13 @@
 package com.healthcare.personal_health_monitoring.controller;
 
 
-import com.healthcare.personal_health_monitoring.dto.ClinicBookViewDTO;
-import com.healthcare.personal_health_monitoring.dto.ClinicPrescriptionCardListDTO;
-import com.healthcare.personal_health_monitoring.dto.ConsultCardRensponseDTO;
-import com.healthcare.personal_health_monitoring.dto.ConsultPageDTO;
+import com.healthcare.personal_health_monitoring.dto.*;
 import com.healthcare.personal_health_monitoring.repository.ConsultRepo;
 import com.healthcare.personal_health_monitoring.security.CustomUserDetails;
 import com.healthcare.personal_health_monitoring.service.ConsultService;
+import com.healthcare.personal_health_monitoring.util.StandardResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -45,6 +44,27 @@ public class ConsultController {
                 consultService.getPatientPrescriptionCards(patientId)
         );
     }
+
+
+    @GetMapping("/page/{consultId}")
+    public ResponseEntity<StandardResponse> getConsultPageFullData(
+            @PathVariable int consultId
+    ) {
+        ConsultPageFullDTO data =
+                consultService.getConsultPageFullData(consultId);
+
+        return new ResponseEntity<>(
+                new StandardResponse(200, "success", data),
+                HttpStatus.OK
+        );
+    }
+
+
+
+
+
+
+
 
 
 }
