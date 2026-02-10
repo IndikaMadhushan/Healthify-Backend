@@ -26,7 +26,7 @@ public class ConsultController {
     private ConsultService consultService;
 
     //get all prescription card data by patient that logged
-    @GetMapping
+    @GetMapping(path="/get-by-patient")
     public ResponseEntity<List<ConsultCardRensponseDTO> > getPatientPrescriptionCards(@AuthenticationPrincipal CustomUserDetails userDetails)
     {
         Long patientId = userDetails.getUser().getId();
