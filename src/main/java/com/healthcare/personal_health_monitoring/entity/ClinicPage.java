@@ -60,6 +60,11 @@ public class ClinicPage {
 
     private String UpdatedDoctor;
 
+    @ManyToOne
+    @JoinColumn(name = "did", nullable = false)
+    private Doctor CreatedDoctor;
+
+
 
     @Column(nullable = false)
     private boolean patientApprovedForEdit = false;

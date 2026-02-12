@@ -21,11 +21,11 @@ public class ClinicBook {
     private int id;
 
     @ManyToOne
-    @JoinColumn(name = "PID", nullable = false)
+    @JoinColumn(name = "pid", nullable = false)
     private Patient patient;
 
     @ManyToOne
-    @JoinColumn(name = "DID", nullable = false)
+    @JoinColumn(name = "did", nullable = false)
     private Doctor doctor;
 
     @Column(nullable=false)
@@ -44,8 +44,8 @@ public class ClinicBook {
 //        this.createdTime = LocalTime.now();
 //    }
 
-    @Column(nullable = false)
-    private String doctorName;
+//    @Column(nullable = false)
+//    private String doctorName;
 
     private String UpdatedDoctor;
     private LocalDateTime updatedTime;

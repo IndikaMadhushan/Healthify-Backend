@@ -1,6 +1,10 @@
 package com.healthcare.personal_health_monitoring.controller;
 
 import com.healthcare.personal_health_monitoring.dto.ClinicPageDTO;
+import com.healthcare.personal_health_monitoring.dto.ClinicPageViewDTO;
+import com.healthcare.personal_health_monitoring.dto.ClinicPrescriptionCardDTO;
+import com.healthcare.personal_health_monitoring.dto.ClinicPrescriptionCardListDTO;
+import com.healthcare.personal_health_monitoring.entity.ClinicPage;
 import com.healthcare.personal_health_monitoring.security.CustomUserDetails;
 import com.healthcare.personal_health_monitoring.service.ClinicPageService;
 import com.healthcare.personal_health_monitoring.util.StandardResponse;
@@ -10,6 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/cpage")
@@ -55,6 +61,7 @@ public class ClinicPageController {
         );
     }
 
+    //get specific clinic page data for pdf prescription
     @GetMapping(path = "/{clinicPageId}")
     public ResponseEntity<StandardResponse> getClinicPageData(@PathVariable int clinicPageId) {
         ClinicPageDTO message = clinicPageService.getClinicPageData(clinicPageId);
@@ -81,5 +88,28 @@ public class ClinicPageController {
                 clinicPageService.approveEditByPatient(clinicPageId)
         );
     }
+
+
+    @GetMapping("/clinic-data/{clinicBookId}/pages")
+    public List<ClinicPrescriptionCardDTO> getClinicPages(
+            @PathVariable int clinicBookId) {
+
+        return clinicPageService.getPagesByClinicBook(clinicBookId);
+    }
+
+
+    //right component list all clinic pages
+    @GetMapping("/by-clinic-book/{clinicBookId}")
+    public ResponseEntity<List<ClinicPrescriptionCardListDTO>> getPages(
+            @PathVariable int clinicBookId
+    ) {
+        return ResponseEntity.ok(
+                clinicPageService.getClinicPagesByClinicBookId(clinicBookId)
+        );
+    }
+
+
+
+
 
 }
