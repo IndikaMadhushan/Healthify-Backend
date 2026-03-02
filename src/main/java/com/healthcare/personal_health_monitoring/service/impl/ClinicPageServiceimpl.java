@@ -36,15 +36,93 @@ public class ClinicPageServiceimpl implements ClinicPageService {
     @Autowired
     private DoctorRepository doctorRepo;
 
+
+//
+//    @Override
+//    public String saveClinicPage(int clinicBookId, ClinicPageDTO clinicPageDTO, Long doctor_id) {
+//        Doctor doctor = doctorRepo.findById(doctor_id)
+//                .orElseThrow(() -> new RuntimeException("Doctor not found"));
+//
+//
+//        ClinicBook clinicBook = clinicBookRepo.findById(clinicBookId)
+//                .orElseThrow(() -> new RuntimeException("ClinicBook not found"));
+//
+//        if(clinicBook.getAccessControl().equals(AccessControlClinic.DENY)) {
+//            if (!clinicBook.getDoctor().getUser().getId().equals(doctor_id)) {
+//                throw new SecurityException("You are not allowed to add clinic pages to this clinic book");
+//            }
+//        }
+//
+//        // Get Patient automatically
+//        Patient patient = clinicBook.getPatient();
+//
+//        // Create ClinicPage
+//        ClinicPage clinicPage = new ClinicPage();
+//        clinicPage.setClinicBook(clinicBook);
+//        clinicPage.setSubReason(clinicPageDTO.getSubReason());
+//        clinicPage.setClinicExaming(clinicPageDTO.getClinicExaming());
+//        clinicPage.setClinicSuggestTest(clinicPageDTO.getClinicSuggestTest());
+//        clinicPage.setClinicDoctorNote(clinicPageDTO.getClinicDoctorNote());
+//        clinicPage.setNextClinic(clinicPageDTO.getNextClinic());
+//        clinicPage.setCreatedDoctor(doctor);
+//
+//
+//        List<Medication> meds = new ArrayList<>();
+//
+//        if (clinicPageDTO.getMedication() != null &&
+//                !clinicPageDTO.getMedication().isEmpty()) {
+//
+//            meds = clinicPageDTO.getMedication().stream().map(mdto -> {
+//                Medication m = new Medication();
+//                m.setClinicPage(clinicPage);
+//                m.setDrugName(mdto.getDrugName());
+//                m.setDosage(mdto.getDosage());
+//                m.setFrequency(mdto.getFrequency());
+//                m.setDuration(mdto.getDuration());
+//                m.setInstruction(mdto.getInstruction());
+//                return m;
+//            }).toList();
+//        }
+//
+//        clinicPage.setMedication(meds);
+//
+//        clinicPageRepo.save(clinicPage);
+//
+//        if (clinicPageDTO.getHealthMetricRequestSetDTO() != null &&
+//                clinicPageDTO.getHealthMetricRequestSetDTO().getMetrics() != null) {
+//
+//            for (Map.Entry<HealthMetricType, Double> entry :
+//                    clinicPageDTO.getHealthMetricRequestSetDTO().getMetrics().entrySet()) {
+//
+//                Double value = entry.getValue();
+//                if (value == null) continue;
+//
+//                PatientHealthMetric metric = new PatientHealthMetric();
+//                metric.setPatient(patient);
+//                metric.setMetricType(entry.getKey());
+//                metric.setValue(value);
+//                metric.setPageType(PageType.CLINIC);
+//                metric.setPageId(clinicPage.getClinicPageId());
+//
+//                patientHealthMetricRepository.save(metric);
+//            }
+//        }
+//
+//        return "CREATED SUCCESSFULLY";
+//
+//    }
+
     @Transactional
     @Override
     public String saveClinicPage(int clinicBookId, ClinicPageDTO clinicPageDTO, Long doctor_id) {
 
+        Doctor doctor = doctorRepo.findById(doctor_id)
+                .orElseThrow(() -> new RuntimeException("Doctor not found"));
 
         ClinicBook clinicBook = clinicBookRepo.findById(clinicBookId)
                 .orElseThrow(() -> new RuntimeException("ClinicBook not found"));
 
-        if(clinicBook.getAccessControl().equals(AccessControlClinic.DENY)) {
+        if (clinicBook.getAccessControl().equals(AccessControlClinic.DENY)) {
             if (!clinicBook.getDoctor().getUser().getId().equals(doctor_id)) {
                 throw new SecurityException("You are not allowed to add clinic pages to this clinic book");
             }
@@ -52,6 +130,10 @@ public class ClinicPageServiceimpl implements ClinicPageService {
 
         // Get Patient automatically
         Patient patient = clinicBook.getPatient();
+
+        // Flags to track what is saved
+        boolean hasMedication = false;
+        boolean hasMetrics = false;
 
         // Create ClinicPage
         ClinicPage clinicPage = new ClinicPage();
@@ -61,12 +143,15 @@ public class ClinicPageServiceimpl implements ClinicPageService {
         clinicPage.setClinicSuggestTest(clinicPageDTO.getClinicSuggestTest());
         clinicPage.setClinicDoctorNote(clinicPageDTO.getClinicDoctorNote());
         clinicPage.setNextClinic(clinicPageDTO.getNextClinic());
+        clinicPage.setCreatedDoctor(doctor);
 
-
+        // ================== MEDICATION SECTION ==================
         List<Medication> meds = new ArrayList<>();
 
         if (clinicPageDTO.getMedication() != null &&
                 !clinicPageDTO.getMedication().isEmpty()) {
+
+            hasMedication = true;
 
             meds = clinicPageDTO.getMedication().stream().map(mdto -> {
                 Medication m = new Medication();
@@ -77,15 +162,20 @@ public class ClinicPageServiceimpl implements ClinicPageService {
                 m.setDuration(mdto.getDuration());
                 m.setInstruction(mdto.getInstruction());
                 return m;
-            }).toList();
+            }).collect(Collectors.toList());
         }
 
         clinicPage.setMedication(meds);
 
+        // Save Clinic Page First
         clinicPageRepo.save(clinicPage);
 
+        // ================== HEALTH METRICS SECTION ==================
         if (clinicPageDTO.getHealthMetricRequestSetDTO() != null &&
-                clinicPageDTO.getHealthMetricRequestSetDTO().getMetrics() != null) {
+                clinicPageDTO.getHealthMetricRequestSetDTO().getMetrics() != null &&
+                !clinicPageDTO.getHealthMetricRequestSetDTO().getMetrics().isEmpty()) {
+
+            hasMetrics = true;
 
             for (Map.Entry<HealthMetricType, Double> entry :
                     clinicPageDTO.getHealthMetricRequestSetDTO().getMetrics().entrySet()) {
@@ -104,8 +194,17 @@ public class ClinicPageServiceimpl implements ClinicPageService {
             }
         }
 
-        return "CREATED SUCCESSFULLY";
+        // ================== DYNAMIC RESPONSE ==================
 
+        if (hasMedication && hasMetrics) {
+            return "Clinic page + Medication + Health Metrics saved successfully";
+        } else if (hasMedication) {
+            return "Clinic page + Medication saved successfully";
+        } else if (hasMetrics) {
+            return "Clinic page + Health Metrics saved successfully";
+        } else {
+            return "Clinic page saved successfully";
+        }
     }
 
     @Transactional
@@ -314,6 +413,7 @@ public class ClinicPageServiceimpl implements ClinicPageService {
 
         emailService.sendApprovalMail(patientEmail, clinicPageId);
     }
+
 
 
 
