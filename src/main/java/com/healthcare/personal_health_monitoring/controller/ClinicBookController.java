@@ -1,6 +1,7 @@
 package com.healthcare.personal_health_monitoring.controller;
 
 
+import com.healthcare.personal_health_monitoring.dto.ClinicBookPatientDetailsCardDTO;
 import com.healthcare.personal_health_monitoring.dto.ClinicBookRequestDTO;
 import com.healthcare.personal_health_monitoring.dto.ClinicBookViewDTO;
 import com.healthcare.personal_health_monitoring.security.CustomUserDetails;
@@ -128,7 +129,12 @@ public class ClinicBookController {
     }
 
 
-
-
-
+    @GetMapping("/patientData/{clinicBookId}")
+    public ResponseEntity<ClinicBookPatientDetailsCardDTO> getPatientData(
+            @PathVariable Integer clinicBookId
+    ) {
+        return ResponseEntity.ok(
+                clinicBookService.getPatientData(clinicBookId)
+        );
+    }
 }

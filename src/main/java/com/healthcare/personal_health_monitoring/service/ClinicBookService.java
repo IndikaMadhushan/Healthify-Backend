@@ -1,6 +1,7 @@
 package com.healthcare.personal_health_monitoring.service;
 
 
+import com.healthcare.personal_health_monitoring.dto.ClinicBookPatientDetailsCardDTO;
 import com.healthcare.personal_health_monitoring.dto.ClinicBookRequestDTO;
 import com.healthcare.personal_health_monitoring.dto.ClinicBookViewDTO;
 
@@ -20,4 +21,7 @@ public interface ClinicBookService {
 
     List<ClinicBookViewDTO> getPatientClinicBookDetails(long patientId);
     ClinicBookViewDTO getClinicBookById(Integer clinicBookId);
+
+
+    ClinicBookPatientDetailsCardDTO getPatientData(Integer clinicBookId);
 }
