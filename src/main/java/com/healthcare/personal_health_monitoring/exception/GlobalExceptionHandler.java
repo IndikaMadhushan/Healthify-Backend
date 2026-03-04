@@ -24,11 +24,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(errors);
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String,String>> handleAll(Exception ex) {
-        ex.printStackTrace();
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Internal server error"));
-    }
+//    @ExceptionHandler(Exception.class)
+//    public ResponseEntity<Map<String,String>> handleAll(Exception ex) {
+//        ex.printStackTrace();
+//        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Internal server error"));
+//    }
 
     // 404 - Resource not found (DB entity missing)
     @ExceptionHandler(EntityNotFoundException.class)
@@ -44,5 +44,22 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.FORBIDDEN)
                 .body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(org.springframework.web.server.ResponseStatusException.class)
+    public ResponseEntity<Map<String, String>> handleResponseStatusException(
+            org.springframework.web.server.ResponseStatusException ex) {
+
+        return ResponseEntity
+                .status(ex.getStatusCode())
+                .body(Map.of("error", ex.getReason()));
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String,String>> handleAll(Exception ex) {
+        ex.printStackTrace();
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Internal server error"));
     }
 }

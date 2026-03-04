@@ -59,7 +59,11 @@ public class ClinicPage {
 //    @OneToMany(mappedBy = "clinicPage",cascade = CascadeType.ALL,orphanRemoval = true)
 //    private List<Medication> medication;
 
-    @OneToMany(mappedBy = "clinicPage", cascade = CascadeType.ALL)
+    @OneToMany(
+            mappedBy = "clinicPage",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
     private List<Medication> medication = new ArrayList<>();
 
     private String UpdatedDoctor;

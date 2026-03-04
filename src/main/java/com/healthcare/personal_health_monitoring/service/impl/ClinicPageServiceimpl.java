@@ -6,9 +6,11 @@ import com.healthcare.personal_health_monitoring.repository.*;
 import com.healthcare.personal_health_monitoring.service.ClinicPageService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -206,75 +208,79 @@ public class ClinicPageServiceimpl implements ClinicPageService {
             return "Clinic page saved successfully";
         }
     }
-
     @Transactional
-    public String updateClinicPage(int clinicPageId,ClinicPageDTO clinicPageDTO,Long doctor_id) {
-
+    public String updateClinicPage(int clinicPageId, ClinicPageDTO clinicPageDTO, Long doctor_id) {
 
         ClinicPage clinicPage = clinicPageRepo.findById(clinicPageId)
                 .orElseThrow(() -> new RuntimeException("Clinic page not found"));
+
         ClinicBook clinicBook = clinicPage.getClinicBook();
 
-        if(clinicBook.getAccessControl().equals(AccessControlClinic.DENY)) {
-            if (!clinicPage.getClinicBook().getDoctor().getUser().getId().equals(doctor_id)) {
-                throw new RuntimeException("You cannot edit this clinic page");
+        if (clinicBook.getAccessControl().equals(AccessControlClinic.DENY)) {
+            if (!clinicBook.getDoctor().getUser().getId().equals(doctor_id)) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You cannot edit this clinic page");
             }
         }
 
         Doctor doctor = doctorRepo.findById(doctor_id)
                 .orElseThrow(() -> new RuntimeException("Doctor not found"));
 
-        // Check time/approval
+        // ================= CHECK TIME / APPROVAL =================
         boolean withinTime = isWithinEditWindow(clinicPage);
         boolean approved = clinicPage.isPatientApprovedForEdit();
 
         if (!withinTime && !approved) {
-            throw new RuntimeException(
-                    "Edit time expired. Patient approval required.Do you want request?"
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "EDIT_WINDOW_EXPIRED"
             );
         }
 
-        // uPDATE DATA (ALLOWED)
-        clinicPage.setUpdatedDoctor(doctor.getFullName()); //should reaplace with slmc no
+        // ================= UPDATE DATA =================
+        clinicPage.setUpdatedDoctor(doctor.getFullName());
         clinicPage.setSubReason(clinicPageDTO.getSubReason());
         clinicPage.setClinicExaming(clinicPageDTO.getClinicExaming());
         clinicPage.setClinicSuggestTest(clinicPageDTO.getClinicSuggestTest());
         clinicPage.setClinicDoctorNote(clinicPageDTO.getClinicDoctorNote());
         clinicPage.setNextClinic(clinicPageDTO.getNextClinic());
 
-        //  Replace medications safely
+        // ================= REPLACE MEDICATIONS =================
         clinicPage.getMedication().clear();
 
         if (clinicPageDTO.getMedication() != null) {
-            List<Medication> meds = clinicPageDTO.getMedication().stream().map(mdto -> {
-                Medication m = new Medication();
-                m.setClinicPage(clinicPage);
-                m.setDrugName(mdto.getDrugName());
-                m.setDosage(mdto.getDosage());
-                m.setFrequency(mdto.getFrequency());
-                m.setDuration(mdto.getDuration());
-                m.setInstruction(mdto.getInstruction());
-                return m;
-            }).toList();
+
+            List<Medication> meds = clinicPageDTO.getMedication()
+                    .stream()
+                    .map(mdto -> {
+
+                        Medication m = new Medication();
+                        m.setClinicPage(clinicPage);
+                        m.setDrugName(mdto.getDrugName());
+                        m.setDosage(mdto.getDosage());
+                        m.setFrequency(mdto.getFrequency());
+                        m.setDuration(mdto.getDuration());
+                        m.setInstruction(mdto.getInstruction());
+
+                        return m;
+                    })
+                    .toList();
 
             clinicPage.getMedication().addAll(meds);
         }
 
-        // Reset approval (ONE-TIME USE)
+        // ================= RESET APPROVAL =================
         clinicPage.setPatientApprovedForEdit(false);
         clinicPage.setPatientApprovedTime(null);
 
         clinicPageRepo.save(clinicPage);
 
-        //  UPDATE METRICS WITHOUT DELETE
+        // ================= UPDATE HEALTH METRICS =================
         if (clinicPageDTO.getHealthMetricRequestSetDTO() != null &&
                 clinicPageDTO.getHealthMetricRequestSetDTO().getMetrics() != null) {
 
-            // 1Load existing metrics
             List<PatientHealthMetric> existingMetrics =
                     patientHealthMetricRepository.findByPageId(clinicPage.getClinicPageId());
 
-            //  Map by metric type
             Map<HealthMetricType, PatientHealthMetric> metricMap =
                     existingMetrics.stream()
                             .collect(Collectors.toMap(
@@ -282,7 +288,6 @@ public class ClinicPageServiceimpl implements ClinicPageService {
                                     m -> m
                             ));
 
-            // Loop DTO metrics
             for (Map.Entry<HealthMetricType, Double> entry :
                     clinicPageDTO.getHealthMetricRequestSetDTO().getMetrics().entrySet()) {
 
@@ -291,10 +296,13 @@ public class ClinicPageServiceimpl implements ClinicPageService {
                 PatientHealthMetric metric = metricMap.get(entry.getKey());
 
                 if (metric != null) {
+
                     // UPDATE
                     metric.setValue(entry.getValue());
                     patientHealthMetricRepository.save(metric);
+
                 } else {
+
                     // INSERT
                     PatientHealthMetric newMetric = new PatientHealthMetric();
                     newMetric.setMetricType(entry.getKey());
@@ -309,6 +317,41 @@ public class ClinicPageServiceimpl implements ClinicPageService {
         return "UPDATED SUCCESSFULLY";
     }
 
+//    @Override
+//    @Transactional
+//    public String deleteClinicPage(int clinicPageId, Long doctorId) {
+//
+//        ClinicPage clinicPage = clinicPageRepo.findById(clinicPageId)
+//                .orElseThrow(() -> new RuntimeException("Clinic page not found"));
+//
+//        ClinicBook clinicBook = clinicPage.getClinicBook();
+//
+//        if(clinicBook.getAccessControl().equals(AccessControlClinic.DENY)) {
+//            if (!clinicPage.getClinicBook()
+//                    .getDoctor()
+//                    .getUser()
+//                    .getId()
+//                    .equals(doctorId)) {
+//                throw new RuntimeException("You cannot delete this clinic page");
+//            }
+//        }
+//        boolean withinTime = isWithinEditWindow(clinicPage);
+//        boolean approved = clinicPage.isPatientApprovedForEdit();
+//
+//        if (!withinTime && !approved) {
+//            throw new RuntimeException(
+//                    "Delete time expired. Patient approval required."
+//            );
+//        }
+//        patientHealthMetricRepository.deleteByPageTypeAndPageId(
+//                PageType.CLINIC,
+//                clinicPage.getClinicPageId()
+//        );
+//        clinicPageRepo.delete(clinicPage);
+//
+//        return "DELETED SUCCESSFULLY";
+//    }
+
     @Override
     @Transactional
     public String deleteClinicPage(int clinicPageId, Long doctorId) {
@@ -318,27 +361,35 @@ public class ClinicPageServiceimpl implements ClinicPageService {
 
         ClinicBook clinicBook = clinicPage.getClinicBook();
 
-        if(clinicBook.getAccessControl().equals(AccessControlClinic.DENY)) {
+        if (clinicBook.getAccessControl().equals(AccessControlClinic.DENY)) {
             if (!clinicPage.getClinicBook()
                     .getDoctor()
                     .getUser()
                     .getId()
                     .equals(doctorId)) {
-                throw new RuntimeException("You cannot delete this clinic page");
+
+                throw new ResponseStatusException(
+                        HttpStatus.FORBIDDEN,
+                        "YOU_CANNOT_DELETE_THIS_PAGE"
+                );
             }
         }
+
         boolean withinTime = isWithinEditWindow(clinicPage);
         boolean approved = clinicPage.isPatientApprovedForEdit();
 
         if (!withinTime && !approved) {
-            throw new RuntimeException(
-                    "Delete time expired. Patient approval required."
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "DELETE_WINDOW_EXPIRED_REQUEST_APPROVAL"
             );
         }
+
         patientHealthMetricRepository.deleteByPageTypeAndPageId(
                 PageType.CLINIC,
                 clinicPage.getClinicPageId()
         );
+
         clinicPageRepo.delete(clinicPage);
 
         return "DELETED SUCCESSFULLY";
