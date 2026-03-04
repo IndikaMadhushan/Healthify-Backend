@@ -503,7 +503,7 @@ public class ClinicPageServiceimpl implements ClinicPageService {
 
                         page.getUpdatedDoctor(),                // updatedBy
                         page.getSubReason(),                    // reason
-                        page.getUpdatedDoctor()                 // createdDoctor (temporary)
+                        page.getCreatedDoctor().getFullName()              // createdDoctor (temporary)
                 )
         ).toList();
     }
