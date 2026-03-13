@@ -10,6 +10,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.time.LocalDateTime;
+
 @Configuration
 @RequiredArgsConstructor
 public class DataInitializer implements CommandLineRunner {
@@ -31,6 +33,7 @@ public class DataInitializer implements CommandLineRunner {
             admin.setPassword(passwordEncoder.encode("admin123"));
             admin.setRole(UserRole.ADMIN);
             admin.setEmailVerified(true);
+            admin.setOtpGeneratedAt(LocalDateTime.now());
             admin.setEnabled(true); // Admin is always enabled
 
             userRepository.save(admin);
@@ -45,6 +48,8 @@ public class DataInitializer implements CommandLineRunner {
             doctor.setNic("DOC001");
             doctor.setPass(passwordEncoder.encode("doctor123"));
             doctor.setRole(UserRole.DOCTOR);
+
+            //doctor.setOtpGeneratedAt(LocalDateTime.now());
             doctor.setEnabled(true); // Enabled manually for testing
 
             doctorRepository.save(doctor);
