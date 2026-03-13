@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -55,8 +56,15 @@ public class ClinicPage {
 
     private Date nextClinic;
 
-    @OneToMany(mappedBy = "clinicPage",cascade = CascadeType.ALL,orphanRemoval = true)
-    private List<Medication> medication;
+//    @OneToMany(mappedBy = "clinicPage",cascade = CascadeType.ALL,orphanRemoval = true)
+//    private List<Medication> medication;
+
+    @OneToMany(
+            mappedBy = "clinicPage",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<Medication> medication = new ArrayList<>();
 
     private String UpdatedDoctor;
 

@@ -1,6 +1,7 @@
 package com.healthcare.personal_health_monitoring.service.impl;
 
 
+import com.healthcare.personal_health_monitoring.dto.ClinicBookPatientDetailsCardDTO;
 import com.healthcare.personal_health_monitoring.dto.ClinicBookRequestDTO;
 import com.healthcare.personal_health_monitoring.dto.ClinicBookViewDTO;
 import com.healthcare.personal_health_monitoring.entity.AccessControlClinic;
@@ -267,5 +268,29 @@ public class ClinicBookServiceimpl implements ClinicBookService {
                         : cb.getUpdatedTime().toString()
         );
     }
+
+    @Override
+    public ClinicBookPatientDetailsCardDTO getPatientData(Integer clinicBookId) {
+
+        ClinicBook cb = clinicBookRepo.findById(clinicBookId)
+                .orElseThrow(() ->
+                        new RuntimeException("Clinic book not found with id " + clinicBookId)
+                );
+
+        Patient patient = cb.getPatient();
+
+        if (patient == null) {
+            throw new RuntimeException("Patient not linked to clinic book");
+        }
+
+        return new ClinicBookPatientDetailsCardDTO(
+                cb.getVisit_reason(),
+                patient.getAge(),// use camelCase if possible
+                patient.getPatientId(),     // if this is your PK
+                patient.getGender()
+
+        );
+    }
+
 
 }
