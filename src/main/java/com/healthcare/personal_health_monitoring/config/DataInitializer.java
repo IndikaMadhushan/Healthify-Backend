@@ -40,20 +40,22 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         //  DOCTOR CREATION
-        if (userRepository.findByEmail("doctor@healthcare.com").isEmpty()) {
-
-            Doctor doctor = new Doctor();
-            doctor.setFullName("Dr. John Silva");
-            doctor.setEmail("doctor@healthcare.com");
-            doctor.setNic("DOC001");
-            doctor.setPass(passwordEncoder.encode("doctor123"));
-            doctor.setRole(UserRole.DOCTOR);
-
-            //doctor.setOtpGeneratedAt(LocalDateTime.now());
-            doctor.setEnabled(true); // Enabled manually for testing
-
-            doctorRepository.save(doctor);
-        }
+//        if (userRepository.findByEmail("doctor@healthcare.com").isEmpty()) {
+//
+//
+//
+//            Doctor doctor = new Doctor();
+//            doctor.setFullName("Dr. John Silva");
+//            doctor.setEmail("doctor@healthcare.com");
+//            doctor.setNic("DOC001");
+//            doctor.setPass(passwordEncoder.encode("doctor123"));
+//            doctor.setRole(UserRole.DOCTOR);
+//
+//            //doctor.setOtpGeneratedAt(LocalDateTime.now());
+//            doctor.setEnabled(true); // Enabled manually for testing
+//
+//            doctorRepository.save(doctor);
+//        }
     }
 
     @Bean
