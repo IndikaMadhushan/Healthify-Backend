@@ -16,15 +16,15 @@ services:
       - "3306:3306"
 
   backend:
-    image: numidu/ampora_backend:latest
-    container_name: ampora_backend
+    image: indikamadhushan/healthy_backend:latest
+    container_name: healthy_backend
     restart: always
     depends_on:
       - mysql
     ports:
       - "8083:8083"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/ampora
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/healthy?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: healthy_user
       SPRING_DATASOURCE_PASSWORD: healthy_pass
       SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
