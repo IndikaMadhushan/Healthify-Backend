@@ -1,7 +1,6 @@
 version: "3.9"
 
 services:
-
   mysql:
     image: mysql:8.0
     container_name: healthy_mysql
@@ -17,7 +16,7 @@ services:
       - "3306:3306"
 
   backend:
-    image: numidu/ampora_backend:latest
+    image: indikamadhushan/healthy_backend:latest
     container_name: healthy_backend
     restart: always
     depends_on:
