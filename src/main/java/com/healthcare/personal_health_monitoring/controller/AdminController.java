@@ -32,7 +32,7 @@ public class AdminController {
         return ResponseEntity.ok("Doctor approved successfully");
     }
 
-    @GetMapping("/pending-doctors")
+    @GetMapping("/pending-doctor")
     public List<DoctorResponse> pendingDoctors() {
         return doctorService.getPendingDoctors();
     }
