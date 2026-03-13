@@ -3,8 +3,9 @@ pipeline {
 
     environment {
         IMAGE_NAME = "indikamadhushan/healthy_backend:${BUILD_NUMBER}"
-        VM_USER    = "ubuntu"
-        VM_IP      = "13.63.70.157"
+        LATEST_IMAGE = "indikamadhushan/healthy_backend:latest"
+        VM_USER = "ubuntu"
+        VM_IP = "13.63.70.157"
     }
 
     stages {
@@ -27,12 +28,13 @@ pipeline {
         stage('Build & Push Docker Image') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh """
+                    sh '''
+                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
                         docker build --build-arg CACHE_BUST=$BUILD_NUMBER -t $IMAGE_NAME .
                         docker push $IMAGE_NAME
-                        docker tag $IMAGE_NAME indikamadhushan/healthy_backend:latest
-                        docker push indikamadhushan/healthy_backend:latest
-                    """
+                        docker tag $IMAGE_NAME $LATEST_IMAGE
+                        docker push $LATEST_IMAGE
+                    '''
                 }
             }
         }
@@ -40,17 +42,16 @@ pipeline {
         stage('Deploy to AWS EC2') {
             steps {
                 withCredentials([sshUserPrivateKey(credentialsId: 'ec2_key', keyFileVariable: 'SSH_KEY_PATH')]) {
-                    sh """
+                    sh '''
                         echo "Deploying to AWS EC2..."
-                        scp -i \$SSH_KEY_PATH -o StrictHostKeyChecking=no docker-compose.yml ${VM_USER}@${VM_IP}:~/docker-compose.yml
-                        ssh -i \$SSH_KEY_PATH -o StrictHostKeyChecking=no ${VM_USER}@${VM_IP} '
-                            docker pull indikamadhushan/ampora_backend:latest
-                            docker compose down
-                            docker compose pull
-                            docker compose up -d --force-recreate
-                        '
+                        scp -i "$SSH_KEY_PATH" -o StrictHostKeyChecking=no docker-compose.yml ${VM_USER}@${VM_IP}:~/docker-compose.yml
+                        ssh -i "$SSH_KEY_PATH" -o StrictHostKeyChecking=no ${VM_USER}@${VM_IP} "
+                            docker compose -f ~/docker-compose.yml down || true
+                            docker pull indikamadhushan/healthy_backend:latest
+                            docker compose -f ~/docker-compose.yml up -d --force-recreate
+                        "
                         echo "Deployment complete"
-                    """
+                    '''
                 }
             }
         }
