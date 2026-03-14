@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Date;
 import java.util.List;
@@ -61,6 +62,12 @@ public class ConsultPage {
 
     @OneToMany(mappedBy = "consultPage",cascade = CascadeType.ALL,orphanRemoval = true)
     private List<Medication> medicaion;
+
+    private boolean patientApprovedForEdit = false;
+
+    private LocalDateTime patientApprovedTime;
+
+    private Date nextClinic;
 
 
 

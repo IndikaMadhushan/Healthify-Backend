@@ -11,10 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -50,7 +47,7 @@ public class ConsultController {
     public ResponseEntity<StandardResponse> getConsultPageFullData(
             @PathVariable int consultId
     ) {
-        ConsultPageFullDTO data =
+        ConsultPageResponseDTO data =
                 consultService.getConsultPageFullData(consultId);
 
         return new ResponseEntity<>(
@@ -59,8 +56,95 @@ public class ConsultController {
         );
     }
 
+//    page created (done)
+    @PostMapping("/{patientId}")
+    @PreAuthorize("hasRole('DOCTOR')")
+    public ResponseEntity<String> createConsultPage(
+            @PathVariable Long patientId,
+            @RequestBody ConsultPageFullDTO dto,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+
+        Long doctorId = userDetails.getUser().getId();
+
+        String message = consultService.createConsultPage(patientId, dto, doctorId);
+
+        return ResponseEntity.ok(message);
+    }
+
+    // ================= UPDATE CONSULT PAGE =================
+    @PutMapping("/{consultId}")
+    @PreAuthorize("hasRole('DOCTOR')")
+    public ResponseEntity<String> updateConsultPage(
+            @PathVariable int consultId,
+            @RequestBody ConsultPageFullDTO dto,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+
+        Long doctorId = userDetails.getUser().getId();
+
+        return ResponseEntity.ok(
+                consultService.updateConsultPage(
+                        consultId,
+                        dto,
+                        doctorId
+                )
+        );
+    }
 
 
+    // ================= DELETE CONSULT PAGE =================
+    @DeleteMapping("/{consultId}")
+    @PreAuthorize("hasRole('DOCTOR')")
+    public ResponseEntity<String> deleteConsultPage(
+            @PathVariable int consultId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+
+        Long doctorId = userDetails.getUser().getId();
+
+        return ResponseEntity.ok(
+                consultService.deleteConsultPage(
+                        consultId,
+                        doctorId
+                )
+        );
+    }
+
+    @PostMapping("/request-edit/{consultId}")
+    @PreAuthorize("hasRole('DOCTOR')")
+    public ResponseEntity<String> requestEditApproval(
+            @PathVariable int consultId){
+
+        consultService.requestEditApproval(consultId);
+
+        return ResponseEntity.ok("APPROVAL_EMAIL_SENT");
+    }
+
+
+    @GetMapping("/approve-edit/{consultId}")
+    public ResponseEntity<String> approveEdit(
+            @PathVariable int consultId){
+
+        return ResponseEntity.ok(
+                consultService.approveEditByPatient(consultId)
+        );
+    }
+
+//    @PostMapping("/{patientId}")
+//    @PreAuthorize("hasRole('DOCTOR')")
+//    public ResponseEntity<String> createConsultPage(
+//            @PathVariable Long patientId,
+//            @RequestBody ConsultPageFullDTO dto,
+//            @AuthenticationPrincipal CustomUserDetails userDetails
+//    ) {
+//
+//        Long doctorId = userDetails.getUser().getId();
+//
+//        String message = consultService.createConsultPage(patientId, dto, doctorId);
+//
+//        return ResponseEntity.ok(message);
+//    }
 
 
 
