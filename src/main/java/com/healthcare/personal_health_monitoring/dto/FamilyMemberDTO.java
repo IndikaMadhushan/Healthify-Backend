@@ -10,7 +10,7 @@ import java.time.LocalDate;
 public class FamilyMemberDTO {
     private String name;
 
-    @Past(message = "dob must be in the past")
+    @Past(message = "Date of birth must be in the past")
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate dob;
 
