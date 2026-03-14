@@ -13,15 +13,19 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Map<String,String>> handleBadRequest(IllegalArgumentException ex) {
-        return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
+    public ResponseEntity<ErrorResponse> handleBadRequest(IllegalArgumentException ex) {
+        return ResponseEntity.badRequest().body(
+                new ErrorResponse(ex.getMessage(), null)
+        );
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String,String>> handleValidation(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException ex) {
         Map<String,String> errors = new HashMap<>();
         ex.getBindingResult().getFieldErrors().forEach(e -> errors.put(e.getField(), e.getDefaultMessage()));
-        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(errors);
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(
+                new ErrorResponse("Validation failed", errors)
+        );
     }
 
 //    @ExceptionHandler(Exception.class)
@@ -32,34 +36,34 @@ public class GlobalExceptionHandler {
 
     // 404 - Resource not found (DB entity missing)
     @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<Map<String, String>> handleNotFound(EntityNotFoundException ex) {
+    public ResponseEntity<ErrorResponse> handleNotFound(EntityNotFoundException ex) {
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
-                .body(Map.of("error", ex.getMessage()));
+                .body(new ErrorResponse(ex.getMessage(), null));
     }
 
     // 403 - Forbidden (ownership / security rule)
     @ExceptionHandler(SecurityException.class)
-    public ResponseEntity<Map<String, String>> handleSecurity(SecurityException ex) {
+    public ResponseEntity<ErrorResponse> handleSecurity(SecurityException ex) {
         return ResponseEntity
                 .status(HttpStatus.FORBIDDEN)
-                .body(Map.of("error", ex.getMessage()));
+                .body(new ErrorResponse(ex.getMessage(), null));
     }
 
     @ExceptionHandler(org.springframework.web.server.ResponseStatusException.class)
-    public ResponseEntity<Map<String, String>> handleResponseStatusException(
+    public ResponseEntity<ErrorResponse> handleResponseStatusException(
             org.springframework.web.server.ResponseStatusException ex) {
 
         return ResponseEntity
                 .status(ex.getStatusCode())
-                .body(Map.of("error", ex.getReason()));
+                .body(new ErrorResponse(ex.getReason(), null));
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String,String>> handleAll(Exception ex) {
+    public ResponseEntity<ErrorResponse> handleAll(Exception ex) {
         ex.printStackTrace();
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", "Internal server error"));
+                .body(new ErrorResponse("Internal server error", null));
     }
 }

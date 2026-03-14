@@ -16,12 +16,12 @@ public class PatientUpdateRequest {
     // All fields optional — only provided fields will be updated
     private String fullName;
 
-    @Email
+    @Email(message = "Email must be a valid email address")
     private String email;
 
     private String nic;
 
-    @Past(message = "dateOfBirth must be in the past")
+    @Past(message = "Date of birth must be in the past")
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate dateOfBirth;
 

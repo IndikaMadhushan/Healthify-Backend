@@ -7,27 +7,27 @@ import java.time.LocalDate;
 
 @Data
 public class PatientRegisterRequest {
-    @NotBlank(message = "email is required")
-    @Email(message = "Invalid email format")
+    @NotBlank(message = "Email is required")
+    @Email(message = "Email must be a valid email address")
     private String email;
 
-    @NotBlank(message = "password is required")
+    @NotBlank(message = "Password is required")
     private String password;
 
-    @NotBlank(message = "name is required")
+    @NotBlank(message = "Full name is required")
     private String fullName;
 
-    @Past(message = "dateOfBirth must be in the past")
-    @NotNull(message = "Date of Birth is required")
+    @Past(message = "Date of birth must be in the past")
+    @NotNull(message = "Date of birth is required")
     private LocalDate dateOfBirth;
 
     @NotBlank(message = "Phone number is required")
-    @Pattern(regexp = "^\\d{10}$")
+    @Pattern(regexp = "^\\d{10}$", message = "Phone number must be exactly 10 digits")
     private String phone;
 
-    @NotBlank(message = "Nic is required")
+    @NotBlank(message = "NIC is required")
     private String nic;
 
-    @NotBlank(message = "Please select gender")
+    @NotBlank(message = "Gender is required")
     private String gender;
 }

@@ -14,16 +14,16 @@ import java.util.Set;
 @Data
 public class PatientRequestDTO {
 
-    @NotBlank
+    @NotBlank(message = "Full name is required")
     private String fullName;
 
-    @Email
-    @NotBlank
+    @Email(message = "Email must be a valid email address")
+    @NotBlank(message = "Email is required")
     private String email;
 
     private String nic;
 
-    @Past(message = "dateOfBirth must be in the past")
+    @Past(message = "Date of birth must be in the past")
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate dateOfBirth;
 
