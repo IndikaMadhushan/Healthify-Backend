@@ -16,7 +16,7 @@ public class EmailService {
     public void sendApprovalMail(String toEmail, int clinicPageId) {
 
         String approveLink =
-                "http://localhost:8080/api/v1/cpage/approve-edit/"
+                "https://healthify.dev/api/v1/cpage/approve-edit/"
                         + clinicPageId;
 
 
