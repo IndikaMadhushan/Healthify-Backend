@@ -98,6 +98,8 @@ public class AuthServiceImpl implements AuthService {
             throw new RuntimeException("Email does ot exist or invalid");
         }
 
+
+
         pendingRegistrationRepository.save(pending);
 
         emailService.sendOtpEmail(req.getEmail(), otp);
