@@ -74,7 +74,6 @@ public class AuthController {
         if (user.getEmailOtp().equals(otp)) {
             user.setEmailVerified(true);
             user.setEmailOtp(null);
-            user.setOtpGeneratedAt(null);
             userRepository.save(user);
 
             //System.out.println("email verified");
@@ -142,7 +141,6 @@ public class AuthController {
 
         if (LocalDateTime.now().isAfter(expiryTime)) {
             user.setEmailOtp(null);
-            user.setOtpGeneratedAt(null);
             userRepository.save(user);
 
             return ResponseEntity.badRequest()
@@ -162,7 +160,6 @@ public class AuthController {
 
         // Clear OTP
         user.setEmailOtp(null);
-        user.setOtpGeneratedAt(null);
 
         userRepository.save(user);
 
