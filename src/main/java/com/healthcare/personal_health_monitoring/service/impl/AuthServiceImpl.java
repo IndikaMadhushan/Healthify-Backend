@@ -4,10 +4,12 @@ import com.healthcare.personal_health_monitoring.dto.AuthResponse;
 import com.healthcare.personal_health_monitoring.dto.DoctorRegisterRequest;
 import com.healthcare.personal_health_monitoring.dto.PatientRegisterRequest;
 import com.healthcare.personal_health_monitoring.entity.Doctor;
+import com.healthcare.personal_health_monitoring.entity.PendingRegistration;
 import com.healthcare.personal_health_monitoring.entity.Patient;
 import com.healthcare.personal_health_monitoring.entity.User;
 import com.healthcare.personal_health_monitoring.entity.UserRole;
 import com.healthcare.personal_health_monitoring.repository.DoctorRepository;
+import com.healthcare.personal_health_monitoring.repository.PendingRegistrationRepository;
 import com.healthcare.personal_health_monitoring.repository.PatientRepository;
 import com.healthcare.personal_health_monitoring.repository.UserRepository;
 import com.healthcare.personal_health_monitoring.security.JWTUtil;
@@ -20,7 +22,6 @@ import com.healthcare.personal_health_monitoring.util.AgeUtil;
 import com.healthcare.personal_health_monitoring.util.OtpGenerator;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.antlr.v4.runtime.misc.LogManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -43,6 +44,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final PatientRepository patientRepository;
     private final DoctorRepository doctorRepository;
+    private final PendingRegistrationRepository pendingRegistrationRepository;
     private final PasswordEncoder passwordEncoder;
     private final JWTUtil jwtUtil;
     private final IdGeneratorService idGeneratorService;
@@ -60,57 +62,45 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public void registerPatient(PatientRegisterRequest req)  {
-        // to Prevent duplicate emails
+        // Prevent duplicate emails in users
         if (userRepository.findByEmail(req.getEmail()).isPresent()) {
             throw new IllegalArgumentException("Email already in use. Use another Email.");
         }
 
+        PendingRegistration existing = pendingRegistrationRepository.findByEmail(req.getEmail()).orElse(null);
+        if (existing != null && existing.getRole() != UserRole.PATIENT) {
+            throw new IllegalArgumentException("Email is already registered for a different account type.");
+        }
+
         //to prevent nic duplicate
 
-        if(patientRepository.findByNic(req.getNic()).isPresent()){
+        if(patientRepository.findByNic(req.getNic()).isPresent()
+                || (existing == null && pendingRegistrationRepository.existsByNic(req.getNic()))
+                || (existing != null && pendingRegistrationRepository.existsByNicAndEmailNot(req.getNic(), req.getEmail()))){
             throw new IllegalArgumentException("NIC already registerd as a patient");
         }
 
-
-
-        User user = new User();
-        user.setEmail(req.getEmail());
-        user.setPassword(passwordEncoder.encode(req.getPassword()));
-        user.setRole(UserRole.PATIENT);
-        user.setEnabled(true);
-
-
-
-        Patient patient = new Patient();
-        patient.setUser(user);
-        patient.setFullName(req.getFullName());
-        patient.setDateOfBirth(req.getDateOfBirth());
-        patient.setAge(AgeUtil.calculateAge(req.getDateOfBirth()));
-        patient.setPhone(req.getPhone());
-        patient.setGender(req.getGender());
-        //OTP generqtion part
+        //OTP generation part
         String otp = OtpGenerator.generateOtp();
-        user.setEmailOtp(otp);
-        user.setOtpGeneratedAt(LocalDateTime.now());
-        user.setEmailVerified(false);
-
-
-
-        patient.setPatientId(idGeneratorService.generatePatientCode());
-
-        patient.setUpdatedAt(LocalDateTime.now());
+        PendingRegistration pending = (existing != null) ? existing : new PendingRegistration();
+        pending.setEmail(req.getEmail());
+        pending.setPasswordHash(passwordEncoder.encode(req.getPassword()));
+        pending.setRole(UserRole.PATIENT);
+        pending.setFullName(req.getFullName());
+        pending.setDateOfBirth(req.getDateOfBirth());
+        pending.setPhone(req.getPhone());
+        pending.setGender(req.getGender());
+        pending.setNic(req.getNic());
+        pending.setEmailOtp(otp);
+        pending.setOtpGeneratedAt(LocalDateTime.now());
 
         if(!emailValidationService.isValidEmail(req.getEmail())){
             throw new RuntimeException("Email does ot exist or invalid");
         }
 
-        patientRepository.save(patient);
+        pendingRegistrationRepository.save(pending);
 
-
-
-        userRepository.save(user);
-
-        emailService.sendOtpEmail(user.getEmail(), otp);
+        emailService.sendOtpEmail(req.getEmail(), otp);
 
     }
 
@@ -124,61 +114,53 @@ public class AuthServiceImpl implements AuthService {
         if (userRepository.findByEmail(req.getEmail()).isPresent()) {
             throw new IllegalArgumentException("Email already in use. Use another Email.");
         }
+
+        PendingRegistration existing = pendingRegistrationRepository.findByEmail(req.getEmail()).orElse(null);
+        if (existing != null && existing.getRole() != UserRole.DOCTOR) {
+            throw new IllegalArgumentException("Email is already registered for a different account type.");
+        }
         // prevent duplicate nic
-        if (doctorRepository.findByNic(req.getNic()).isPresent()) {
+        if (doctorRepository.findByNic(req.getNic()).isPresent()
+                || (existing == null && pendingRegistrationRepository.existsByNic(req.getNic()))
+                || (existing != null && pendingRegistrationRepository.existsByNicAndEmailNot(req.getNic(), req.getEmail()))) {
             throw new IllegalArgumentException("NIC already registered as a doctor.");
         }
 
         // prevent duplicate Licence number
-        if (doctorRepository.findByLicenseNumber(req.getLicenseNumber()).isPresent()) {
+        if (doctorRepository.findByLicenseNumber(req.getLicenseNumber()).isPresent()
+                || (existing == null && pendingRegistrationRepository.existsByLicenseNumber(req.getLicenseNumber()))
+                || (existing != null && pendingRegistrationRepository.existsByLicenseNumberAndEmailNot(req.getLicenseNumber(), req.getEmail()))) {
             throw new IllegalArgumentException("Licence is already registered as a doctor.");
         }
 
-        //create user
-
-        User user = new User();
-        user.setEmail(req.getEmail());
-        user.setPassword(passwordEncoder.encode(req.getPassword()));
-        user.setRole(UserRole.DOCTOR);
-        user.setEnabled(false); // Admin need to approve
-
-        userRepository.save(user);
-
         //upload verification document
         String docUrl = fileUploadService.uploadFile(verificationDoc);
-
-        Doctor doctor = new Doctor();
-        doctor.setUser(user);
-        doctor.setFullName(req.getFullName());
-        doctor.setGender(req.getGender());
-        doctor.setSpecialization(req.getSpecialization());
-        doctor.setHospital(req.getHospital());
-        doctor.setGender(req.getGender());
-
-        doctor.setLicenseNumber(req.getLicenseNumber());
-        doctor.setDateOfBirth(req.getDateOfBirth());
-        doctor.setAge(AgeUtil.calculateAge(req.getDateOfBirth()));
-
-        doctor.setSpecialization(req.getSpecialization());
-        doctor.setVerificationDocUrl(docUrl);
-
-        doctor.setDoctorId(idGeneratorService.generateDoctorCode());
 
         if(!emailValidationService.isValidEmail(req.getEmail())){
             throw new RuntimeException("Email does ot exist or invalid");
         }
 
-        doctorRepository.save(doctor);
-
         //OTP generqtion part
         String otp = OtpGenerator.generateOtp();
-        user.setEmailOtp(otp);
-        user.setOtpGeneratedAt(LocalDateTime.now());
-        user.setEmailVerified(false);
 
-        userRepository.save(user);
+        PendingRegistration pending = (existing != null) ? existing : new PendingRegistration();
+        pending.setEmail(req.getEmail());
+        pending.setPasswordHash(passwordEncoder.encode(req.getPassword()));
+        pending.setRole(UserRole.DOCTOR);
+        pending.setFullName(req.getFullName());
+        pending.setGender(req.getGender());
+        pending.setSpecialization(req.getSpecialization());
+        pending.setHospital(req.getHospital());
+        pending.setNic(req.getNic());
+        pending.setLicenseNumber(req.getLicenseNumber());
+        pending.setDateOfBirth(req.getDateOfBirth());
+        pending.setEmailOtp(otp);
+        pending.setOtpGeneratedAt(LocalDateTime.now());
+        pending.setVerificationDocUrl(docUrl);
 
-        emailService.sendOtpEmail(user.getEmail(), otp);
+        pendingRegistrationRepository.save(pending);
+
+        emailService.sendOtpEmail(req.getEmail(), otp);
     }
 
 
@@ -219,6 +201,115 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public String encodePassword(String rawPassword) {
         return passwordEncoder.encode(rawPassword);
+    }
+
+    @Override
+    @Transactional
+    public String verifyEmailOtp(String email, String otp) {
+        // Prefer pending registration flow
+        PendingRegistration pending = pendingRegistrationRepository.findByEmail(email).orElse(null);
+        if (pending != null) {
+            if (!pending.getEmailOtp().equals(otp)) {
+                throw new IllegalArgumentException("Invalid otp");
+            }
+
+            // OTP expiry check (5 minutes)
+            LocalDateTime expiryTime = pending.getOtpGeneratedAt().plusMinutes(5);
+            if (LocalDateTime.now().isAfter(expiryTime)) {
+                pendingRegistrationRepository.delete(pending);
+                throw new IllegalArgumentException("OTP expired. Please register again.");
+            }
+
+            User user = new User();
+            user.setEmail(pending.getEmail());
+            user.setPassword(pending.getPasswordHash());
+            user.setRole(pending.getRole());
+            user.setEnabled(pending.getRole() == UserRole.PATIENT);
+            user.setEmailVerified(true);
+            user.setEmailOtp(null);
+            user.setOtpGeneratedAt(LocalDateTime.now());
+
+            userRepository.save(user);
+
+            if (pending.getRole() == UserRole.PATIENT) {
+                Patient patient = new Patient();
+                patient.setUser(user);
+                patient.setFullName(pending.getFullName());
+                patient.setDateOfBirth(pending.getDateOfBirth());
+                patient.setAge(AgeUtil.calculateAge(pending.getDateOfBirth()));
+                patient.setPhone(pending.getPhone());
+                patient.setGender(pending.getGender());
+                patient.setNic(pending.getNic());
+                patient.setPatientId(idGeneratorService.generatePatientCode());
+                patient.setUpdatedAt(LocalDateTime.now());
+                patientRepository.save(patient);
+            } else if (pending.getRole() == UserRole.DOCTOR) {
+                Doctor doctor = new Doctor();
+                doctor.setUser(user);
+                doctor.setFullName(pending.getFullName());
+                doctor.setGender(pending.getGender());
+                doctor.setSpecialization(pending.getSpecialization());
+                doctor.setHospital(pending.getHospital());
+                doctor.setNic(pending.getNic());
+                doctor.setLicenseNumber(pending.getLicenseNumber());
+                doctor.setDateOfBirth(pending.getDateOfBirth());
+                doctor.setAge(AgeUtil.calculateAge(pending.getDateOfBirth()));
+                doctor.setVerificationDocUrl(pending.getVerificationDocUrl());
+                doctor.setDoctorId(idGeneratorService.generateDoctorCode());
+                doctorRepository.save(doctor);
+            }
+
+            pendingRegistrationRepository.delete(pending);
+            return "Email Verified Successfully";
+        }
+
+        // Fallback for existing users (legacy flow)
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (user.getEmailOtp() == null) {
+            throw new IllegalArgumentException("OTP expired or already used");
+        }
+
+        if (user.getEmailOtp().equals(otp)) {
+            user.setEmailVerified(true);
+            user.setEmailOtp(null);
+            if (user.getOtpGeneratedAt() == null) {
+                user.setOtpGeneratedAt(LocalDateTime.now());
+            }
+            userRepository.save(user);
+            return "Email Verified Successfully";
+        }
+
+        throw new IllegalArgumentException("Invalid otp");
+    }
+
+    @Override
+    @Transactional
+    public String resendEmailOtp(String email) {
+        PendingRegistration pending = pendingRegistrationRepository.findByEmail(email).orElse(null);
+        if (pending != null) {
+            String otp = OtpGenerator.generateOtp();
+            pending.setEmailOtp(otp);
+            pending.setOtpGeneratedAt(LocalDateTime.now());
+            pendingRegistrationRepository.save(pending);
+            emailService.sendOtpEmail(email, otp);
+            return "OTP resent successfully";
+        }
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (user.isEmailVerified()) {
+            throw new IllegalArgumentException("Email already verified");
+        }
+
+        String otp = OtpGenerator.generateOtp();
+        user.setEmailOtp(otp);
+        user.setOtpGeneratedAt(LocalDateTime.now());
+        userRepository.save(user);
+        emailService.sendOtpEmail(email, otp);
+        return "OTP resent successfully";
     }
 
 

@@ -5,8 +5,6 @@ import com.healthcare.personal_health_monitoring.entity.User;
 import com.healthcare.personal_health_monitoring.repository.UserRepository;
 import com.healthcare.personal_health_monitoring.service.AuthService;
 import com.healthcare.personal_health_monitoring.service.EmailService;
-import com.healthcare.personal_health_monitoring.service.FileUploadService;
-import com.healthcare.personal_health_monitoring.service.impl.AuthServiceImpl;
 import com.healthcare.personal_health_monitoring.util.OtpGenerator;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +30,7 @@ public class AuthController {
     public ResponseEntity<?> registerPatient(@Valid @RequestBody PatientRegisterRequest req) {
         authService.registerPatient(req);
         return ResponseEntity.ok(
-                "Patient Registerd Successfully"
+                "Registration started. Please verify the OTP sent to your email."
         );
     }
 
@@ -48,7 +46,7 @@ public class AuthController {
 
         authService.registerDoctor(request, verificationDoc);
         return ResponseEntity.ok(
-                "Doctor registered successfully. Await admin approval."
+                "Registration started. Please verify the OTP sent to your email."
         );
 
     };
@@ -64,46 +62,12 @@ public class AuthController {
     public ResponseEntity<String> verifyEmail(
             @RequestParam String email,
             @RequestParam String otp){
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        if(user.getEmailOtp() == null) {
-            return ResponseEntity.badRequest().body("OTP expired or alredy used");
-        }
-
-        if (user.getEmailOtp().equals(otp)) {
-            user.setEmailVerified(true);
-            user.setEmailOtp(null);
-            userRepository.save(user);
-
-            //System.out.println("email verified");
-
-            return ResponseEntity.ok("Email Verified Successfully");
-        }
-
-        return ResponseEntity.badRequest().body("Invalid otp");
+        return ResponseEntity.ok(authService.verifyEmailOtp(email, otp));
     }
 
     @PostMapping("/resend-otp")
     public ResponseEntity<String> resendOtp(@RequestParam String email) {
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        if (user.isEmailVerified()) {
-            return ResponseEntity.badRequest().body("Email already verified");
-        }
-
-        String otp = OtpGenerator.generateOtp();
-
-        user.setEmailOtp(otp);
-        user.setOtpGeneratedAt(LocalDateTime.now());
-
-        userRepository.save(user);
-
-        emailService.sendOtpEmail(email, otp);
-
-        return ResponseEntity.ok("OTP resent successfully");
+        return ResponseEntity.ok(authService.resendEmailOtp(email));
     }
 
     @PostMapping("/password-reset/request")
