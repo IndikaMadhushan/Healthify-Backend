@@ -9,25 +9,21 @@ import java.util.regex.Pattern;
 @Service
 public class EmailValidationServiceIml implements EmailValidationService {
 
-    private static final Pattern EMAIL_PATTERN =
-            Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
-
-
+    private static final Pattern EMAIL_PATTERN = Pattern.compile(
+            "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"
+    );
 
     @Override
     public boolean isValidEmail(String email) {
-
-        if (!EMAIL_PATTERN.matcher(email).matches()) {
+        if (email == null) {
             return false;
         }
 
-        try {
-            String domain = email.substring(email.indexOf("@") + 1);
-            InetAddress domainAdress = InetAddress.getByName(domain);
-            return domainAdress != null;
-        } catch (Exception e) {
+        email = email.trim();
+        if (email.isEmpty()) {
             return false;
         }
 
+        return EMAIL_PATTERN.matcher(email).matches();
     }
 }
