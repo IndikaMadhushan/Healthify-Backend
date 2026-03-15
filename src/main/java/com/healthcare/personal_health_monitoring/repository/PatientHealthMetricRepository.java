@@ -6,11 +6,17 @@ import com.healthcare.personal_health_monitoring.entity.PatientHealthMetric;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface PatientHealthMetricRepository
         extends JpaRepository<PatientHealthMetric, Long> {
 
     List<PatientHealthMetric> findByPatient_IdAndMetricTypeOrderByRecordedAtAsc(
+            Long patientId,
+            HealthMetricType metricType
+    );
+
+    Optional<PatientHealthMetric> findTopByPatient_IdAndMetricTypeOrderByRecordedAtDesc(
             Long patientId,
             HealthMetricType metricType
     );

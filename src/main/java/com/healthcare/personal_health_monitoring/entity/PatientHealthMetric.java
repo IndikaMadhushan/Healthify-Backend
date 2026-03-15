@@ -27,6 +27,15 @@ public class PatientHealthMetric {
     @Enumerated(EnumType.STRING)
     private HealthMetricType metricType;
 
+    // BLOOD_SUGAR,
+    // BLOOD_PRESSURE_SYSTOLIC,
+    // BLOOD_PRESSURE_DIASTOLIC,
+    // WEIGHT,
+    // HEIGHT,
+    // HEART_RATE,
+    // TEMPERATURE,
+    // CHOLESTEROL
+
     private Double value;
 
     private LocalDateTime recordedAt;

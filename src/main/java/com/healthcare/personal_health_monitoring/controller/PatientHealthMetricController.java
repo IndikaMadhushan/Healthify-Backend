@@ -23,6 +23,18 @@ public class PatientHealthMetricController {
             @RequestParam HealthMetricType metricType,
             @RequestParam Double value) {
 
+            //matric types
+            // BLOOD_SUGAR,
+            // BLOOD_PRESSURE_SYSTOLIC,
+            // BLOOD_PRESSURE_DIASTOLIC,
+            // WEIGHT,
+            // HEIGHT,
+            // HEART_RATE,
+            // TEMPERATURE,
+            // CHOLESTEROL
+
+            
+
         return PatientHealthMetricMapper.toResponse(
                 metricService.addMetric(patientId, metricType, value)
         );

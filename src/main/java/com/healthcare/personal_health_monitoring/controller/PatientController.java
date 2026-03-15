@@ -1,9 +1,10 @@
 package com.healthcare.personal_health_monitoring.controller;
 
 import com.healthcare.personal_health_monitoring.dto.*;
-import com.healthcare.personal_health_monitoring.entity.Patient;
-import com.healthcare.personal_health_monitoring.repository.PatientRepository;
+import com.healthcare.personal_health_monitoring.entity.HealthMetricType;
+import com.healthcare.personal_health_monitoring.entity.PatientHealthMetric;
 import com.healthcare.personal_health_monitoring.service.PatientService;
+import com.healthcare.personal_health_monitoring.service.PatientHealthMetricService;
 import com.healthcare.personal_health_monitoring.util.BmiUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +22,7 @@ import java.util.List;
 public class PatientController {
 
     private final PatientService patientService;
-    private final PatientRepository patientRepository;
+    private final PatientHealthMetricService patientHealthMetricService;
 
     // Create patient - if we want to create via /auth/register ignore this
     @PostMapping
@@ -74,10 +75,9 @@ public class PatientController {
             Authentication auth
     ) {
         // ensure patient uploads only their own image
-        Patient patient = patientRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Patient not found"));
+        PatientResponse patient = patientService.getPatientById(id);
 
-        if (!patient.getUser().getEmail().equals(auth.getName())) {
+        if (!patient.getEmail().equals(auth.getName())) {
             return ResponseEntity.status(403).build();
         }
 
@@ -103,15 +103,15 @@ public class PatientController {
 
     @GetMapping("/{patientId}/bmi")
     public BmiResponse getBmiDetails(@PathVariable Long patientId) {
+        PatientHealthMetric bmiMetric = patientHealthMetricService
+                .getLatestMetric(patientId, HealthMetricType.BMI)
+                .orElse(null);
 
-        Patient patient = patientRepository.findById(patientId)
-                .orElseThrow(() -> new RuntimeException("Patient not found"));
-
-        if (patient.getHeight() == null || patient.getWeight() == null) {
+        if (bmiMetric == null || bmiMetric.getValue() == null) {
             return new BmiResponse(null, "NOT_AVAILABLE", "Please update height and weight.");
         }
 
-        double bmi = BmiUtil.calculateBmi(patient.getWeight(), patient.getHeight());
+        double bmi = bmiMetric.getValue();
         String category = BmiUtil.getBmiCategory(bmi);
         String tip = BmiUtil.getHealthTip(category);
 
