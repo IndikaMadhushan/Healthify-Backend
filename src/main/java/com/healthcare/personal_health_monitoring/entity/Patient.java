@@ -72,10 +72,6 @@ public class Patient  {
     private String photoUrl;
 
 
-    @Column(name = "bmi")
-    private Double bmi;
-
-
 
     // FAMILY BACKGROUND
 

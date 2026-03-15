@@ -34,6 +34,7 @@ public class PatientServiceImpl implements PatientService {
     private final FileUploadService fileUploadService;
     private final UserRepository userRepository;
     private final EmailService emailService;
+    private final PatientHealthMetricRepository patientHealthMetricRepository;
 
     @Override
     public PatientResponse createPatient(PatientCreateRequest request) {
@@ -73,12 +74,16 @@ public class PatientServiceImpl implements PatientService {
         p.setUpdatedAt(LocalDateTime.now());
 
         Patient saved = patientRepository.save(p);
+        if (request.getHeight() != null || request.getWeight() != null) {
+            saveBmiMetric(saved);
+        }
         return PatientMapper.toResponse(saved);
     }
 
     @Override
     public PatientResponse updatePatient(Long id, PatientUpdateRequest request) {
         Patient patient = patientRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Patient not found: " + id));
+        boolean shouldSaveBmiMetric = request.getHeight() != null || request.getWeight() != null;
 
         // map permitted fields
         PatientMapper.mapUpdateToEntity(request, patient);
@@ -134,18 +139,11 @@ public class PatientServiceImpl implements PatientService {
             patient.setNotes(new ArrayList<>(list));
         }
 
-        // calculate bmi value
-        if (patient.getHeight() != null && patient.getWeight() != null) {
-            patient.setBmi(
-                    BmiUtil.calculateBmi(
-                            patient.getWeight(),
-                            patient.getHeight()
-                    )
-            );
-        }
-
         patient.setUpdatedAt(LocalDateTime.now());
         Patient saved = patientRepository.save(patient);
+        if (shouldSaveBmiMetric) {
+            saveBmiMetric(saved);
+        }
         return PatientMapper.toResponse(saved);
     }
 
@@ -242,6 +240,21 @@ public class PatientServiceImpl implements PatientService {
          } else {
              emailService.sendAccountDeactivatedEmail(user.getEmail(), patient.getFullName());
          }
+    }
+
+    private void saveBmiMetric(Patient patient) {
+        Double bmi = BmiUtil.calculateBmi(patient.getWeight(), patient.getHeight());
+        if (bmi == null) {
+            return;
+        }
+
+        PatientHealthMetric metric = new PatientHealthMetric();
+        metric.setPatient(patient);
+        metric.setMetricType(HealthMetricType.BMI);
+        metric.setValue(bmi);
+        metric.setRecordedAt(LocalDateTime.now());
+
+        patientHealthMetricRepository.save(metric);
     }
 
 }
