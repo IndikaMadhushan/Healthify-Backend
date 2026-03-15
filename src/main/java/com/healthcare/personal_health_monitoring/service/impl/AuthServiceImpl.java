@@ -184,7 +184,10 @@ public class AuthServiceImpl implements AuthService {
 
         // Block disabled accounts
         if (!user.isEnabled()) {
-            throw new RuntimeException("Account not enabled. Contact admin.");
+            if (user.getRole() == UserRole.DOCTOR) {
+                throw new SecurityException("Doctor account not approved yet. Please wait for admin approval.");
+            }
+            throw new SecurityException("Account not enabled. Contact admin.");
         }
 
 
