@@ -1,53 +1,139 @@
 package com.healthcare.personal_health_monitoring.service.impl;
 
 import com.healthcare.personal_health_monitoring.service.FileUploadService;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.UUID;
 
 @Service
 public class FileUploadServiceImpl implements FileUploadService {
 
-    private final Path rootLocation = Paths.get("uploads");
+    @Value("${supabase.url}")
+    private String supabaseUrl;
 
-    public FileUploadServiceImpl() {
-        try {
-            Files.createDirectories(rootLocation);
-        } catch (IOException e) {
-            throw new RuntimeException("Could not initialize folder for upload!");
-        }
+    @Value("${supabase.service-key}")
+    private String serviceKey;
+
+    @Value("${supabase.bucket.profile-images}")
+    private String profileImagesBucket;
+
+    private final RestTemplate restTemplate = new RestTemplate();
+
+    @Override
+    public String uploadPublicProfileImage(MultipartFile file, String folder) {
+        String objectPath = buildObjectPath(folder, file.getOriginalFilename());
+        uploadToSupabase(profileImagesBucket, objectPath, file);
+
+        String encodedPath = encodePath(objectPath);
+        return supabaseUrl + "/storage/v1/object/public/" + profileImagesBucket + "/" + encodedPath;
     }
 
     @Override
-    public String uploadFile(MultipartFile file) {
+    public String uploadPrivateFile(MultipartFile file, String bucket, String folder) {
+        String objectPath = buildObjectPath(folder, file.getOriginalFilename());
+        uploadToSupabase(bucket, objectPath, file);
+        return objectPath;
+    }
 
+    @Override
+    public String createSignedUrl(String bucket, String objectPath, int expiresInSeconds) {
+        String url = supabaseUrl + "/storage/v1/object/sign/" + bucket;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("apikey", serviceKey);
+        headers.setBearerAuth(serviceKey);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        Map<String, Object> body = Map.of(
+                "expiresIn", expiresInSeconds,
+                "path", objectPath
+        );
+
+        HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> response = restTemplate.postForObject(url, request, Map.class);
+
+        if (response == null || response.get("signedURL") == null) {
+            throw new RuntimeException("Failed to create signed URL");
+        }
+
+        return supabaseUrl + "/storage/v1" + response.get("signedURL").toString();
+    }
+
+    @Override
+    public byte[] downloadPrivateFile(String bucket, String objectPath) {
+        String url = supabaseUrl + "/storage/v1/object/authenticated/" + bucket + "/" + encodePath(objectPath);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("apikey", serviceKey);
+        headers.setBearerAuth(serviceKey);
+
+        HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+        ResponseEntity<byte[]> response = restTemplate.exchange(
+                url,
+                HttpMethod.GET,
+                entity,
+                byte[].class
+        );
+
+        if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
+            throw new RuntimeException("Failed to download private file");
+        }
+
+        return response.getBody();
+    }
+
+    private void uploadToSupabase(String bucket, String objectPath, MultipartFile file) {
         try {
-            if (file.isEmpty()) {
-                throw new RuntimeException("Cannot upload empty file!");
-            }
+            String url = supabaseUrl + "/storage/v1/object/" + bucket + "/" + encodePath(objectPath);
 
-            String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("apikey", serviceKey);
+            headers.setBearerAuth(serviceKey);
+            headers.setContentType(MediaType.parseMediaType(
+                    file.getContentType() != null ? file.getContentType() : "application/octet-stream"
+            ));
+            headers.set("x-upsert", "false");
 
-            Path destinationFile = rootLocation.resolve(
-                    Paths.get(fileName)).normalize().toAbsolutePath();
+            byte[] bytes = file.getBytes();
+            HttpEntity<byte[]> request = new HttpEntity<>(bytes, headers);
 
-            Files.copy(
-                    file.getInputStream(),
-                    destinationFile,
-                    StandardCopyOption.REPLACE_EXISTING
+            ResponseEntity<String> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.POST,
+                    request,
+                    String.class
             );
 
-
-            return "https://healthify.dev/uploads/" + fileName;  // URL to store in DB
+            if (!response.getStatusCode().is2xxSuccessful()) {
+                throw new RuntimeException("Supabase upload failed: " + response.getBody());
+            }
 
         } catch (Exception e) {
-            throw new RuntimeException("File upload failed!");
+            throw new RuntimeException("File upload failed", e);
         }
+    }
+
+    private String buildObjectPath(String folder, String originalFilename) {
+        String safeName = originalFilename == null ? "file" : originalFilename.replaceAll("\\s+", "_");
+        return folder + "/" + UUID.randomUUID() + "_" + safeName;
+    }
+
+    private String encodePath(String path) {
+        return URLEncoder.encode(path, StandardCharsets.UTF_8).replace("+", "%20").replace("%2F", "/");
     }
 }
 

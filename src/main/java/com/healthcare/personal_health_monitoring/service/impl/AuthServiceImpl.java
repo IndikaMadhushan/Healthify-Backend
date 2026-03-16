@@ -55,6 +55,7 @@ public class AuthServiceImpl implements AuthService {
     private final EmailService emailService;
 
 
+
     /**
      Registers a new user.
         PATIENT → enabled immediately
@@ -138,7 +139,11 @@ public class AuthServiceImpl implements AuthService {
         }
 
         //upload verification document
-        String docUrl = fileUploadService.uploadFile(verificationDoc);
+        String docPath = fileUploadService.uploadPrivateFile(
+            verificationDoc,
+            "doctor-verification-docs",
+            "pending/" + req.getEmail()
+        );
 
         if(!emailValidationService.isValidEmail(req.getEmail())){
             throw new RuntimeException("Email does ot exist or invalid");
@@ -160,7 +165,7 @@ public class AuthServiceImpl implements AuthService {
         pending.setDateOfBirth(req.getDateOfBirth());
         pending.setEmailOtp(otp);
         pending.setOtpGeneratedAt(LocalDateTime.now());
-        pending.setVerificationDocUrl(docUrl);
+        pending.setVerificationDocUrl(docPath);
 
         pendingRegistrationRepository.save(pending);
 

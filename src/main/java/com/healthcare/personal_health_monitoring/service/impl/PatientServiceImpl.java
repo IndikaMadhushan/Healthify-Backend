@@ -210,7 +210,7 @@ public class PatientServiceImpl implements PatientService {
         Patient patient = patientRepository.findById(patientId)
                 .orElseThrow(() -> new RuntimeException("Patient not found"));
 
-        String imageUrl = fileUploadService.uploadFile(image);
+        String imageUrl = fileUploadService.uploadPublicProfileImage(image, "patients/" + patientId);
         patient.setPhotoUrl(imageUrl);
 
         patientRepository.save(patient);

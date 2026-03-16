@@ -52,7 +52,7 @@ public class Doctor {
     @Column(nullable = true, table = "doctor_personal_details")
     private String postalCode;
 
-    @Column(name = "verification_doc_url", table = "doctor_professional_details")
+    @Column(name = "verification_doc_url", table = "doctor_professional_details", length = 1000)
     private String verificationDocUrl;
 
     @Column(nullable = true, table = "doctor_personal_details")
@@ -79,7 +79,7 @@ public class Doctor {
     @Column(name = "age", table = "doctor_personal_details")
     private Integer age;
 
-    @Column(table = "doctor_personal_details")
+    @Column(table = "doctor_personal_details", length = 1000)
     private String photoUrl;
 
     @Column(table = "doctor_professional_details")

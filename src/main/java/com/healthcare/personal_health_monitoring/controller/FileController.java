@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-@RestController
-@RequestMapping("/uploads")
+// @RestController
+// @RequestMapping("/uploads")
 public class FileController {
 
     private final Path rootLocation = Paths.get("uploads").toAbsolutePath().normalize();

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Period;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +49,8 @@ public class LegacyProfileMigrationRunner implements CommandLineRunner {
             long patientId = asLong(row.get("id"));
             NameUtil.NameParts parts = NameUtil.split((String) row.get("full_name"));
 
+            Integer age = resolveAge(row.get("age"), row.get("date_of_birth"));
+
             jdbcTemplate.update("""
                             INSERT INTO patient_personal_details
                                 (patient_id, first_name, second_name, last_name, nic, phone, marital_status,
@@ -81,7 +84,7 @@ public class LegacyProfileMigrationRunner implements CommandLineRunner {
                     row.get("occupation"),
                     row.get("nationality"),
                     row.get("date_of_birth"),
-                    row.get("age"),
+                        age,
                     row.get("gender"),
                     row.get("height"),
                     row.get("weight"),
@@ -176,6 +179,8 @@ public class LegacyProfileMigrationRunner implements CommandLineRunner {
             long doctorId = asLong(row.get("id"));
             NameUtil.NameParts parts = NameUtil.split((String) row.get("full_name"));
 
+            Integer age = resolveAge(row.get("age"), row.get("date_of_birth"));
+
             jdbcTemplate.update("""
                             INSERT INTO doctor_personal_details
                                 (doctor_id, first_name, second_name, last_name, gender, nic, postal_code,
@@ -208,11 +213,16 @@ public class LegacyProfileMigrationRunner implements CommandLineRunner {
                     row.get("province"),
                     row.get("country"),
                     row.get("date_of_birth"),
-                    row.get("age"),
+                        age,
                     row.get("photo_url")
             );
 
-            jdbcTemplate.update("""
+                String licenseNumber = resolveNonEmptyString(
+                    row.get("license_number"),
+                    "UNKNOWN-" + doctorId
+                );
+
+                jdbcTemplate.update("""
                             INSERT INTO doctor_professional_details
                                 (doctor_id, hospital, specialization, license_number, verification_doc_url, joined_date)
                             VALUES (?, ?, ?, ?, ?, ?)
@@ -226,7 +236,7 @@ public class LegacyProfileMigrationRunner implements CommandLineRunner {
                     doctorId,
                     row.get("hospital"),
                     row.get("specialization"),
-                    row.get("license_number"),
+                    licenseNumber,
                     row.get("verification_doc_url"),
                     row.get("joined_date")
             );
@@ -281,5 +291,42 @@ public class LegacyProfileMigrationRunner implements CommandLineRunner {
 
     private long asLong(Object value) {
         return value instanceof Number number ? number.longValue() : Long.parseLong(String.valueOf(value));
+    }
+
+    private Integer resolveAge(Object ageValue, Object dobValue) {
+        if (ageValue instanceof Number number) {
+            return number.intValue();
+        }
+
+        LocalDate dob = asLocalDate(dobValue);
+        if (dob != null) {
+            return Period.between(dob, LocalDate.now()).getYears();
+        }
+
+        return 0;
+    }
+
+    private LocalDate asLocalDate(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof LocalDate localDate) {
+            return localDate;
+        }
+        if (value instanceof Date date) {
+            return date.toLocalDate();
+        }
+        if (value instanceof Timestamp timestamp) {
+            return timestamp.toLocalDateTime().toLocalDate();
+        }
+        return LocalDate.parse(String.valueOf(value));
+    }
+
+    private String resolveNonEmptyString(Object value, String fallback) {
+        if (value == null) {
+            return fallback;
+        }
+        String text = String.valueOf(value).trim();
+        return text.isEmpty() ? fallback : text;
     }
 }

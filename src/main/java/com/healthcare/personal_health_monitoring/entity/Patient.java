@@ -87,7 +87,7 @@ public class Patient {
     @Column(table = "patient_personal_details")
     private String bloodType;
 
-    @Column(table = "patient_personal_details")
+    @Column(table = "patient_personal_details", length = 1000)
     private String photoUrl;
 
     @Embedded
