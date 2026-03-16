@@ -129,15 +129,22 @@ public class AuthServiceImpl implements AuthService {
                 || (existing == null && pendingRegistrationRepository.existsByNic(req.getNic()))
                 || (existing != null && pendingRegistrationRepository.existsByNicAndEmailNot(req.getNic(), req.getEmail()))) {
             throw new IllegalArgumentException("NIC already registered as a doctor.");
-        }
-
-        // prevent duplicate Licence number
+                String fullName = resolveNonEmptyString(pending.getFullName(), pending.getEmail());
+                String gender = resolveNonEmptyString(pending.getGender(), "UNKNOWN");
+                String hospital = resolveNonEmptyString(pending.getHospital(), "UNKNOWN");
+                String licenseNumber = resolveNonEmptyString(
+                        pending.getLicenseNumber(),
+                        "UNKNOWN-" + user.getId()
+                );
+                doctor.setFullName(fullName);
+                doctor.setGender(gender);
+                doctor.setLegacyGender(gender);
         if (doctorRepository.findByLicenseNumber(req.getLicenseNumber()).isPresent()
-                || (existing == null && pendingRegistrationRepository.existsByLicenseNumber(req.getLicenseNumber()))
-                || (existing != null && pendingRegistrationRepository.existsByLicenseNumberAndEmailNot(req.getLicenseNumber(), req.getEmail()))) {
+                doctor.setHospital(hospital);
+                doctor.setLegacyHospital(hospital);
             throw new IllegalArgumentException("Licence is already registered as a doctor.");
-        }
-
+                doctor.setLicenseNumber(licenseNumber);
+                doctor.setLegacyLicenseNumber(licenseNumber);
         //upload verification document
         String docPath = fileUploadService.uploadPrivateFile(
             verificationDoc,
@@ -170,6 +177,13 @@ public class AuthServiceImpl implements AuthService {
         pendingRegistrationRepository.save(pending);
 
         emailService.sendOtpEmail(req.getEmail(), otp);
+    private String resolveNonEmptyString(String value, String fallback) {
+        if (value == null) {
+            return fallback;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? fallback : trimmed;
+    }
     }
 
 
