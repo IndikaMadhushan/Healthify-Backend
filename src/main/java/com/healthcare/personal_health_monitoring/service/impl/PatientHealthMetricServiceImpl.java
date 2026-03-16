@@ -1,6 +1,7 @@
 package com.healthcare.personal_health_monitoring.service.impl;
 
 import com.healthcare.personal_health_monitoring.entity.HealthMetricType;
+import com.healthcare.personal_health_monitoring.entity.PageType;
 import com.healthcare.personal_health_monitoring.entity.Patient;
 import com.healthcare.personal_health_monitoring.entity.PatientHealthMetric;
 import com.healthcare.personal_health_monitoring.repository.PatientHealthMetricRepository;
@@ -34,6 +35,8 @@ public class PatientHealthMetricServiceImpl
         metric.setMetricType(metricType);
         metric.setValue(value);
         metric.setRecordedAt(LocalDateTime.now());
+        metric.setPageType(PageType.SELF);
+        metric.setPageId(Math.toIntExact(patientId));
 
         return metricRepository.save(metric);
     }

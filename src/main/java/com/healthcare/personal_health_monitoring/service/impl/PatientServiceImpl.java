@@ -257,6 +257,8 @@ public class PatientServiceImpl implements PatientService {
         metric.setMetricType(HealthMetricType.BMI);
         metric.setValue(bmi);
         metric.setRecordedAt(LocalDateTime.now());
+        metric.setPageType(PageType.SELF);
+        metric.setPageId(Math.toIntExact(patient.getId()));
 
         patientHealthMetricRepository.save(metric);
     }

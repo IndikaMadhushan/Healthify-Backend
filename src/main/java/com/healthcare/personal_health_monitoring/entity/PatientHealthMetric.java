@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -25,6 +27,8 @@ public class PatientHealthMetric {
     private Patient patient;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
+    @Column(name = "metric_type", nullable = false, length = 64)
     private HealthMetricType metricType;
 
     // BLOOD_SUGAR,
@@ -53,6 +57,7 @@ public class PatientHealthMetric {
     }
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "page_type")
     private PageType pageType;
 
     private int pageId;
