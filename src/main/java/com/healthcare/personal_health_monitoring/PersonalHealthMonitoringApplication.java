@@ -19,7 +19,7 @@ public class PersonalHealthMonitoringApplication {
 	@Bean
 	public WebMvcConfigurer corsConfigurer(){
 		return new WebMvcConfigurer() {
-			public void addCorsMapping(CorsRegistry registry) {
+			public void addCorsMappings(CorsRegistry registry) {
 				registry.addMapping("/**")
 						.allowedMethods("*")
 						.allowedOrigins("http://localhost:5173");
