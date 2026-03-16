@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SecondaryRow;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -14,6 +15,9 @@ import java.util.List;
 @NoArgsConstructor
 @Entity
 @Table(name = "patients")
+@SecondaryRow(table = "patient_personal_details", optional = false)
+@SecondaryRow(table = "patient_address_details", optional = false)
+@SecondaryRow(table = "patient_family_details", optional = false)
 @SecondaryTables({
         @SecondaryTable(name = "patient_personal_details",
                 pkJoinColumns = @PrimaryKeyJoinColumn(name = "patient_id")),
