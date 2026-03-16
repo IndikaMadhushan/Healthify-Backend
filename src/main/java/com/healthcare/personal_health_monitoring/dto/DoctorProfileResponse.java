@@ -1,14 +1,19 @@
 package com.healthcare.personal_health_monitoring.dto;
 
+import com.healthcare.personal_health_monitoring.util.NameUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class DoctorProfileResponse {
 
     private String doctorId;
-    private String fullName;
+    private String firstName;
+    private String secondName;
+    private String lastName;
     private String email;
     private String nic;
 
@@ -21,4 +26,7 @@ public class DoctorProfileResponse {
 
     private String photoUrl;
 
+    public String getFullName() {
+        return NameUtil.combine(firstName, secondName, lastName);
+    }
 }
