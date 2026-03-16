@@ -56,8 +56,8 @@ public class FileUploadServiceImpl implements FileUploadService {
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         Map<String, Object> body = Map.of(
-                "expiresIn", expiresInSeconds,
-                "path", objectPath
+            "expiresIn", expiresInSeconds,
+            "paths", new String[]{objectPath}
         );
 
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
@@ -69,7 +69,12 @@ public class FileUploadServiceImpl implements FileUploadService {
             throw new RuntimeException("Failed to create signed URL");
         }
 
-        return supabaseUrl + "/storage/v1" + response.get("signedURL").toString();
+        Object signedUrlValue = response.get("signedURL");
+        if (signedUrlValue instanceof java.util.List<?> list && !list.isEmpty()) {
+            signedUrlValue = list.get(0);
+        }
+
+        return supabaseUrl + "/storage/v1" + signedUrlValue.toString();
     }
 
     @Override
