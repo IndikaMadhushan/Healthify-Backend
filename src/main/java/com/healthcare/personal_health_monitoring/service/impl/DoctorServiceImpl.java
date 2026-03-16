@@ -11,6 +11,7 @@ import com.healthcare.personal_health_monitoring.repository.DoctorRepository;
 import com.healthcare.personal_health_monitoring.repository.UserRepository;
 import com.healthcare.personal_health_monitoring.service.DoctorService;
 import com.healthcare.personal_health_monitoring.service.EmailService;
+import com.healthcare.personal_health_monitoring.service.FileUploadService;
 import com.healthcare.personal_health_monitoring.util.AgeUtil;
 import com.healthcare.personal_health_monitoring.util.DoctorMapper;
 import com.healthcare.personal_health_monitoring.util.PatientMapper;
@@ -32,6 +33,7 @@ public class DoctorServiceImpl implements DoctorService {
     private final DoctorRepository doctorRepository;
     private final UserRepository userRepository;
     private final EmailService emailService;
+    private final FileUploadService fileUploadService;
     //private final DoctorResponse doctorResponse;
 
     @Override
@@ -56,7 +58,9 @@ public class DoctorServiceImpl implements DoctorService {
                         new IllegalArgumentException("Doctor not found with ID: " + doctorId)
                 );
 
-        return DoctorMapper.toResponse(doctor);
+        DoctorResponse response = DoctorMapper.toResponse(doctor);
+        response.setVerificationDocUrl(resolveVerificationDocUrl(doctor.getVerificationDocUrl()));
+        return response;
     }
 
     @Override
@@ -155,8 +159,22 @@ public class DoctorServiceImpl implements DoctorService {
         List<Doctor> pendingDoctors = doctorRepository.findByUserEnabled(false);
 
         return pendingDoctors.stream()
-                .map(DoctorMapper::toResponse)
+                .map(doctor -> {
+                    DoctorResponse response = DoctorMapper.toResponse(doctor);
+                    response.setVerificationDocUrl(resolveVerificationDocUrl(doctor.getVerificationDocUrl()));
+                    return response;
+                })
                 .collect(Collectors.toList());
+    }
+
+    private String resolveVerificationDocUrl(String docPath) {
+        if (docPath == null || docPath.isBlank()) {
+            return docPath;
+        }
+        if (docPath.startsWith("http")) {
+            return docPath;
+        }
+        return fileUploadService.createSignedUrl("doctor-verification-docs", docPath, 300);
     }
 
     private DoctorProfileResponse toProfileResponse(Doctor doctor) {
