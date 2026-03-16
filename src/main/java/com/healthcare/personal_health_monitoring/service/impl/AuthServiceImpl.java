@@ -269,6 +269,7 @@ public class AuthServiceImpl implements AuthService {
                 doctor.setUser(user);
                 doctor.setFullName(pending.getFullName());
                 doctor.setGender(pending.getGender());
+                doctor.setLegacyGender(pending.getGender());
                 doctor.setSpecialization(pending.getSpecialization());
                 doctor.setHospital(pending.getHospital());
                 doctor.setNic(pending.getNic());
