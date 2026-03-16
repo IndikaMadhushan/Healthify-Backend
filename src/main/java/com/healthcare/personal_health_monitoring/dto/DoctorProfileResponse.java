@@ -3,6 +3,8 @@ package com.healthcare.personal_health_monitoring.dto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import java.time.LocalDate;
+
 @Data
 @AllArgsConstructor
 public class DoctorProfileResponse {
@@ -20,5 +22,6 @@ public class DoctorProfileResponse {
     private Integer age;
 
     private String photoUrl;
-
+    private LocalDate dateOfBirth;
+    private String gender;
 }

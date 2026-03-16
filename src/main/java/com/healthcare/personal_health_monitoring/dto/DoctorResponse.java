@@ -1,6 +1,7 @@
 package com.healthcare.personal_health_monitoring.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import jakarta.persistence.Column;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -48,4 +49,5 @@ public class DoctorResponse {
 
     private Boolean enabled;
     private String role;
+
 }

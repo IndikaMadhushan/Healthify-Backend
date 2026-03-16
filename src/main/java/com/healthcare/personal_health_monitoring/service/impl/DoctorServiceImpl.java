@@ -102,34 +102,81 @@ public class DoctorServiceImpl implements DoctorService {
             doctor.getLicenseNumber(),
             doctor.getPhone(),
             doctor.getAge(),
-            doctor.getPhotoUrl()
+            doctor.getPhotoUrl(),
+                doctor.getDateOfBirth(),
+                doctor.getGender()
         );
 
     }
 
+//    @Override
+//    public DoctorProfileResponse updateMyProfile(DoctorUpdateRequest request){
+//        //identify the loggesd in doctor
+//        String email = SecurityContextHolder.getContext()
+//                .getAuthentication()
+//                .getName();
+//        //get the doctor
+//        Doctor doctor = doctorRepository.findByUserEmail(email)
+//                .orElseThrow(() -> new RuntimeException("Doctor no found"));
+//
+//        //update allowed fields
+//        doctor.setFullName(request.getFullName());
+//        doctor.setPhone(request.getPhone());
+//        doctor.setHospital(request.getHospital());
+//        doctor.setSpecialization(request.getSpecialization());
+//        if(request.getDateOfBirth() != null) {
+//            doctor.setAge(AgeUtil.calculateAge(request.getDateOfBirth()));
+//        }
+//
+//        //save data
+//        Doctor saved = doctorRepository.save(doctor);
+//
+//        //return updated profile
+//        return new DoctorProfileResponse(
+//                saved.getDoctorId(),
+//                saved.getFullName(),
+//                saved.getUser().getEmail(),
+//                saved.getNic(),
+//                saved.getSpecialization(),
+//                saved.getHospital(),
+//                saved.getLicenseNumber(),
+//                saved.getPhone(),
+//                saved.getAge(),
+//                saved.getPhotoUrl(),
+//                doctor.getDateOfBirth(),
+//                doctor.getGender()
+//        );
+//    }
+
     @Override
-    public DoctorProfileResponse updateMyProfile(DoctorUpdateRequest request){
-        //identify the loggesd in doctor
+    public DoctorProfileResponse updateMyProfile(DoctorUpdateRequest request) {
+
+        // identify logged-in doctor
         String email = SecurityContextHolder.getContext()
                 .getAuthentication()
                 .getName();
-        //get the doctor
-        Doctor doctor = doctorRepository.findByUserEmail(email)
-                .orElseThrow(() -> new RuntimeException("Doctor no found"));
 
-        //update allowed fields
+        // get doctor
+        Doctor doctor = doctorRepository.findByUserEmail(email)
+                .orElseThrow(() -> new RuntimeException("Doctor not found"));
+
+        // update allowed fields
         doctor.setFullName(request.getFullName());
         doctor.setPhone(request.getPhone());
         doctor.setHospital(request.getHospital());
         doctor.setSpecialization(request.getSpecialization());
-        if(request.getDateOfBirth() != null) {
+        doctor.setDateOfBirth(request.getDateOfBirth());
+
+
+        if (request.getDateOfBirth() != null) {
+            doctor.setDateOfBirth(request.getDateOfBirth());
             doctor.setAge(AgeUtil.calculateAge(request.getDateOfBirth()));
         }
 
-        //save data
+        // save updated doctor
         Doctor saved = doctorRepository.save(doctor);
 
-        //return updated profile
+        // return updated profile
         return new DoctorProfileResponse(
                 saved.getDoctorId(),
                 saved.getFullName(),
@@ -140,7 +187,9 @@ public class DoctorServiceImpl implements DoctorService {
                 saved.getLicenseNumber(),
                 saved.getPhone(),
                 saved.getAge(),
-                saved.getPhotoUrl()
+                saved.getPhotoUrl(),
+                saved.getDateOfBirth(),
+                saved.getGender()
         );
     }
 
