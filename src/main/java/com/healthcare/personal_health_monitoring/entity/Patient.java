@@ -20,8 +20,6 @@ import java.util.List;
         @SecondaryTable(name = "patient_address_details",
                 pkJoinColumns = @PrimaryKeyJoinColumn(name = "patient_id")),
         @SecondaryTable(name = "patient_family_details",
-                pkJoinColumns = @PrimaryKeyJoinColumn(name = "patient_id")),
-        @SecondaryTable(name = "patient_emergency_contacts",
                 pkJoinColumns = @PrimaryKeyJoinColumn(name = "patient_id"))
 })
 public class Patient {
@@ -117,21 +115,8 @@ public class Patient {
     @CollectionTable(name = "siblings", joinColumns = @JoinColumn(name = "patient_id"))
     private List<FamilyMember> siblings;
 
-    @Embedded
-    @AttributeOverrides({
-            @AttributeOverride(name = "name", column = @Column(name = "primary_contact_name", table = "patient_emergency_contacts")),
-            @AttributeOverride(name = "phoneNumber", column = @Column(name = "primary_contact_phone", table = "patient_emergency_contacts")),
-            @AttributeOverride(name = "relationship", column = @Column(name = "primary_contact_relationship", table = "patient_emergency_contacts"))
-    })
-    private EmergencyContact primaryContact;
-
-    @Embedded
-    @AttributeOverrides({
-            @AttributeOverride(name = "name", column = @Column(name = "secondary_contact_name", table = "patient_emergency_contacts")),
-            @AttributeOverride(name = "phoneNumber", column = @Column(name = "secondary_contact_phone", table = "patient_emergency_contacts")),
-            @AttributeOverride(name = "relationship", column = @Column(name = "secondary_contact_relationship", table = "patient_emergency_contacts"))
-    })
-    private EmergencyContact secondaryContact;
+    @OneToOne(mappedBy = "patient", cascade = CascadeType.ALL, orphanRemoval = true)
+    private PatientEmergencyContact emergencyContact;
 
     @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL)
     private List<PatientDisease> diseases;
@@ -208,5 +193,44 @@ public class Patient {
             name = new PersonName();
         }
         name.setLastName(lastName);
+    }
+
+    public void setEmergencyContact(PatientEmergencyContact emergencyContact) {
+        this.emergencyContact = emergencyContact;
+        if (emergencyContact != null) {
+            emergencyContact.setPatient(this);
+        }
+    }
+
+    @Transient
+    public EmergencyContact getPrimaryContact() {
+        return emergencyContact != null ? emergencyContact.getPrimaryContact() : null;
+    }
+
+    public void setPrimaryContact(EmergencyContact primaryContact) {
+        if (primaryContact == null && emergencyContact == null) {
+            return;
+        }
+        ensureEmergencyContact().setPrimaryContact(primaryContact);
+    }
+
+    @Transient
+    public EmergencyContact getSecondaryContact() {
+        return emergencyContact != null ? emergencyContact.getSecondaryContact() : null;
+    }
+
+    public void setSecondaryContact(EmergencyContact secondaryContact) {
+        if (secondaryContact == null && emergencyContact == null) {
+            return;
+        }
+        ensureEmergencyContact().setSecondaryContact(secondaryContact);
+    }
+
+    private PatientEmergencyContact ensureEmergencyContact() {
+        if (emergencyContact == null) {
+            emergencyContact = new PatientEmergencyContact();
+            emergencyContact.setPatient(this);
+        }
+        return emergencyContact;
     }
 }

@@ -35,6 +35,7 @@ public class PatientServiceImpl implements PatientService {
     private final UserRepository userRepository;
     private final EmailService emailService;
     private final PatientHealthMetricRepository patientHealthMetricRepository;
+    private final PatientEmergencyContactRepository patientEmergencyContactRepository;
 
     @Override
     public PatientResponse createPatient(PatientCreateRequest request) {
@@ -74,6 +75,7 @@ public class PatientServiceImpl implements PatientService {
         p.setUpdatedAt(LocalDateTime.now());
 
         Patient saved = patientRepository.save(p);
+        saveOrUpdateEmergencyContact(saved, request.getPrimaryContact(), request.getSecondaryContact());
         if (request.getHeight() != null || request.getWeight() != null) {
             saveBmiMetric(saved);
         }
@@ -83,6 +85,7 @@ public class PatientServiceImpl implements PatientService {
     @Override
     public PatientResponse updatePatient(Long id, PatientUpdateRequest request) {
         Patient patient = patientRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Patient not found: " + id));
+        patient.setEmergencyContact(patientEmergencyContactRepository.findById(id).orElse(null));
         boolean shouldSaveBmiMetric = request.getHeight() != null || request.getWeight() != null;
 
         // map permitted fields
@@ -141,6 +144,7 @@ public class PatientServiceImpl implements PatientService {
 
         patient.setUpdatedAt(LocalDateTime.now());
         Patient saved = patientRepository.save(patient);
+        saveOrUpdateEmergencyContact(saved, request.getPrimaryContact(), request.getSecondaryContact());
         if (shouldSaveBmiMetric) {
             saveBmiMetric(saved);
         }
@@ -255,6 +259,39 @@ public class PatientServiceImpl implements PatientService {
         metric.setRecordedAt(LocalDateTime.now());
 
         patientHealthMetricRepository.save(metric);
+    }
+
+    private void saveOrUpdateEmergencyContact(
+            Patient patient,
+            EmergencyContactDTO primaryContactDto,
+            EmergencyContactDTO secondaryContactDto
+    ) {
+        if (primaryContactDto == null && secondaryContactDto == null) {
+            return;
+        }
+
+        PatientEmergencyContact contact = patientEmergencyContactRepository.findById(patient.getId())
+                .orElseGet(PatientEmergencyContact::new);
+
+        contact.setPatient(patient);
+
+        if (primaryContactDto != null) {
+            contact.setPrimaryContact(toEmergencyContact(primaryContactDto));
+        }
+        if (secondaryContactDto != null) {
+            contact.setSecondaryContact(toEmergencyContact(secondaryContactDto));
+        }
+
+        PatientEmergencyContact savedContact = patientEmergencyContactRepository.save(contact);
+        patient.setEmergencyContact(savedContact);
+    }
+
+    private EmergencyContact toEmergencyContact(EmergencyContactDTO dto) {
+        EmergencyContact contact = new EmergencyContact();
+        contact.setName(dto.getName());
+        contact.setPhoneNumber(dto.getPhoneNumber());
+        contact.setRelationship(dto.getRelationship());
+        return contact;
     }
 
 }
