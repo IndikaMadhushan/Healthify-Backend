@@ -1,5 +1,6 @@
 package com.healthcare.personal_health_monitoring.dto;
 
+import com.healthcare.personal_health_monitoring.util.NameUtil;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
@@ -14,8 +15,13 @@ import java.util.Set;
 @Data
 public class PatientCreateRequest {
 
-    @NotBlank(message = "Full name is required")
-    private String fullName;
+    @NotBlank(message = "First name is required")
+    private String firstName;
+
+    private String secondName;
+
+    @NotBlank(message = "Last name is required")
+    private String lastName;
 
     @Email(message = "Email must be a valid email address")
     @NotBlank(message = "Email is required")
@@ -28,8 +34,8 @@ public class PatientCreateRequest {
     private LocalDate dateOfBirth;
 
     private String gender;
-    private Double height; // cm
-    private Double weight; // kg
+    private Double height;
+    private Double weight;
     private String bloodType;
     private String postalCode;
 
@@ -48,7 +54,17 @@ public class PatientCreateRequest {
     @Valid
     private List<FamilyMemberDTO> siblings;
 
-    // Link pre-populated disease/allergy ids
     private Set<Long> diseaseIds;
     private Set<Long> allergyIds;
+
+    public String getFullName() {
+        return NameUtil.combine(firstName, secondName, lastName);
+    }
+
+    public void setFullName(String fullName) {
+        NameUtil.NameParts parts = NameUtil.split(fullName);
+        this.firstName = parts.firstName();
+        this.secondName = parts.secondName();
+        this.lastName = parts.lastName();
+    }
 }

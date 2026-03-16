@@ -1,6 +1,11 @@
 package com.healthcare.personal_health_monitoring.dto;
 
-import jakarta.validation.constraints.*;
+import com.healthcare.personal_health_monitoring.util.NameUtil;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -14,8 +19,13 @@ public class PatientRegisterRequest {
     @NotBlank(message = "Password is required")
     private String password;
 
-    @NotBlank(message = "Full name is required")
-    private String fullName;
+    @NotBlank(message = "First name is required")
+    private String firstName;
+
+    private String secondName;
+
+    @NotBlank(message = "Last name is required")
+    private String lastName;
 
     @Past(message = "Date of birth must be in the past")
     @NotNull(message = "Date of birth is required")
@@ -30,4 +40,15 @@ public class PatientRegisterRequest {
 
     @NotBlank(message = "Gender is required")
     private String gender;
+
+    public String getFullName() {
+        return NameUtil.combine(firstName, secondName, lastName);
+    }
+
+    public void setFullName(String fullName) {
+        NameUtil.NameParts parts = NameUtil.split(fullName);
+        this.firstName = parts.firstName();
+        this.secondName = parts.secondName();
+        this.lastName = parts.lastName();
+    }
 }
