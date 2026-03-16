@@ -55,6 +55,10 @@ public class PatientUpdateRequest {
     private Set<Long> noteIds;
 
     private String nationality;
+    private String maritalStatus;
+    private String occupation;
+    private String district;
+    private String address;
 
     public String getFullName() {
         return NameUtil.combine(firstName, secondName, lastName);

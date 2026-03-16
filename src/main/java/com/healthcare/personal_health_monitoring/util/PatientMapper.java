@@ -89,6 +89,18 @@ public class PatientMapper {
         if (request.getNationality() != null) {
             patient.setNationality(request.getNationality());
         }
+        if (request.getMaritalStatus() != null) {
+            patient.setMaritalStatus(request.getMaritalStatus());
+        }
+        if (request.getOccupation() != null) {
+            patient.setOccupation(request.getOccupation());
+        }
+        if (request.getDistrict() != null) {
+            patient.setDistrict(request.getDistrict());
+        }
+        if (request.getAddress() != null) {
+            patient.setAddress(request.getAddress());
+        }
 
         if (request.getFather() != null) {
             patient.setFather(toFamilyEntity(request.getFather()));
