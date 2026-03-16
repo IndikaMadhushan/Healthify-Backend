@@ -46,6 +46,9 @@ public class Doctor {
     @Column(nullable = false, table = "doctor_personal_details")
     private String gender;
 
+    @Column(name = "gender", nullable = false)
+    private String legacyGender;
+
     @Column(nullable = false, table = "doctor_professional_details")
     private String hospital;
 
