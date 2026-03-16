@@ -1,5 +1,7 @@
 package com.healthcare.personal_health_monitoring.service.impl;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.healthcare.personal_health_monitoring.service.FileUploadService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -13,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -29,6 +32,7 @@ public class FileUploadServiceImpl implements FileUploadService {
     private String profileImagesBucket;
 
     private final RestTemplate restTemplate = new RestTemplate();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public String uploadPublicProfileImage(MultipartFile file, String folder) {
@@ -48,33 +52,32 @@ public class FileUploadServiceImpl implements FileUploadService {
 
     @Override
     public String createSignedUrl(String bucket, String objectPath, int expiresInSeconds) {
-        String url = supabaseUrl + "/storage/v1/object/sign/" + bucket;
+        if (objectPath == null || objectPath.isBlank()) {
+            return null;
+        }
+
+        String url = supabaseUrl + "/storage/v1/object/sign/" + bucket + "/" + encodePath(objectPath);
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("apikey", serviceKey);
         headers.setBearerAuth(serviceKey);
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        Map<String, Object> body = Map.of(
-            "expiresIn", expiresInSeconds,
-            "paths", new String[]{objectPath}
-        );
+        Map<String, Object> body = Map.of("expiresIn", expiresInSeconds);
 
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
+        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
 
-        @SuppressWarnings("unchecked")
-        Map<String, Object> response = restTemplate.postForObject(url, request, Map.class);
-
-        if (response == null || response.get("signedURL") == null) {
+        if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null || response.getBody().isBlank()) {
             throw new RuntimeException("Failed to create signed URL");
         }
 
-        Object signedUrlValue = response.get("signedURL");
-        if (signedUrlValue instanceof java.util.List<?> list && !list.isEmpty()) {
-            signedUrlValue = list.get(0);
+        String signedUrl = extractSignedUrl(response.getBody());
+        if (signedUrl == null || signedUrl.isBlank()) {
+            throw new RuntimeException("Failed to create signed URL");
         }
 
-        return supabaseUrl + "/storage/v1" + signedUrlValue.toString();
+        return toAbsoluteSignedUrl(signedUrl);
     }
 
     @Override
@@ -160,6 +163,59 @@ public class FileUploadServiceImpl implements FileUploadService {
 
     private String encodePath(String path) {
         return URLEncoder.encode(path, StandardCharsets.UTF_8).replace("+", "%20").replace("%2F", "/");
+    }
+
+    private String extractSignedUrl(String responseBody) {
+        try {
+            String trimmed = responseBody.trim();
+            if (trimmed.startsWith("[")) {
+                List<Map<String, Object>> responseList = objectMapper.readValue(
+                        trimmed,
+                        new TypeReference<List<Map<String, Object>>>() {}
+                );
+                if (responseList.isEmpty()) {
+                    return null;
+                }
+                return extractSignedUrl(responseList.get(0));
+            }
+
+            Map<String, Object> response = objectMapper.readValue(
+                    trimmed,
+                    new TypeReference<Map<String, Object>>() {}
+            );
+            return extractSignedUrl(response);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to parse signed URL response", e);
+        }
+    }
+
+    private String extractSignedUrl(Map<String, Object> response) {
+        if (response == null || response.isEmpty()) {
+            return null;
+        }
+
+        Object signedUrl = response.get("signedURL");
+        if (signedUrl == null) {
+            signedUrl = response.get("signedUrl");
+        }
+
+        return signedUrl == null ? null : signedUrl.toString();
+    }
+
+    private String toAbsoluteSignedUrl(String signedUrl) {
+        if (signedUrl.startsWith("http://") || signedUrl.startsWith("https://")) {
+            return signedUrl;
+        }
+        if (signedUrl.startsWith("/storage/v1/")) {
+            return supabaseUrl + signedUrl;
+        }
+        if (signedUrl.startsWith("/object/")) {
+            return supabaseUrl + "/storage/v1" + signedUrl;
+        }
+        if (signedUrl.startsWith("object/")) {
+            return supabaseUrl + "/storage/v1/" + signedUrl;
+        }
+        return supabaseUrl + (signedUrl.startsWith("/") ? signedUrl : "/" + signedUrl);
     }
 }
 
