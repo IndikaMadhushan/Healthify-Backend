@@ -30,6 +30,8 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
 
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.GET,  "/api/lab-reports/patient/**").hasRole("DOCTOR")
+                        .requestMatchers("/api/lab-reports/my/**").hasRole("PATIENT")
                         .requestMatchers(HttpMethod.OPTIONS,"/**").permitAll()
 //                        .requestMatchers("/uploads/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
