@@ -33,12 +33,6 @@ public class PatientMapper {
         patient.setBloodType(request.getBloodType());
         patient.setPostalCode(request.getPostalCode());
 
-        if (request.getPrimaryContact() != null) {
-            patient.setPrimaryContact(toEmergencyEntity(request.getPrimaryContact()));
-        }
-        if (request.getSecondaryContact() != null) {
-            patient.setSecondaryContact(toEmergencyEntity(request.getSecondaryContact()));
-        }
         if (request.getFather() != null) {
             patient.setFather(toFamilyEntity(request.getFather()));
         }
@@ -96,12 +90,6 @@ public class PatientMapper {
             patient.setNationality(request.getNationality());
         }
 
-        if (request.getPrimaryContact() != null) {
-            patient.setPrimaryContact(toEmergencyEntity(request.getPrimaryContact()));
-        }
-        if (request.getSecondaryContact() != null) {
-            patient.setSecondaryContact(toEmergencyEntity(request.getSecondaryContact()));
-        }
         if (request.getFather() != null) {
             patient.setFather(toFamilyEntity(request.getFather()));
         }
