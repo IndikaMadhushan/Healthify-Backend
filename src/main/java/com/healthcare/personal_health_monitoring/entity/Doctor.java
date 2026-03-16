@@ -52,6 +52,9 @@ public class Doctor {
     @Column(nullable = false, table = "doctor_professional_details")
     private String hospital;
 
+    @Column(name = "hospital", nullable = false)
+    private String legacyHospital;
+
     @Column(nullable = true, table = "doctor_personal_details")
     private String nic;
 
