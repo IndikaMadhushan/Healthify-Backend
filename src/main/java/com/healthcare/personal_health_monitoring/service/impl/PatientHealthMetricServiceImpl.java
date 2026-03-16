@@ -1,6 +1,7 @@
 package com.healthcare.personal_health_monitoring.service.impl;
 
 import com.healthcare.personal_health_monitoring.entity.HealthMetricType;
+import com.healthcare.personal_health_monitoring.entity.PageType;
 import com.healthcare.personal_health_monitoring.entity.Patient;
 import com.healthcare.personal_health_monitoring.entity.PatientHealthMetric;
 import com.healthcare.personal_health_monitoring.repository.PatientHealthMetricRepository;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +35,8 @@ public class PatientHealthMetricServiceImpl
         metric.setMetricType(metricType);
         metric.setValue(value);
         metric.setRecordedAt(LocalDateTime.now());
+        metric.setPageType(PageType.SELF);
+        metric.setPageId(Math.toIntExact(patientId));
 
         return metricRepository.save(metric);
     }
@@ -47,6 +51,16 @@ public class PatientHealthMetricServiceImpl
                         patientId,
                         metricType
                 );
+    }
+
+    @Override
+    public Optional<PatientHealthMetric> getLatestMetric(
+            Long patientId,
+            HealthMetricType metricType) {
+        return metricRepository.findTopByPatient_IdAndMetricTypeOrderByRecordedAtDesc(
+                patientId,
+                metricType
+        );
     }
 }
 

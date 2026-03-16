@@ -1,5 +1,6 @@
 package com.healthcare.personal_health_monitoring.dto;
 
+import com.healthcare.personal_health_monitoring.util.NameUtil;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
@@ -14,22 +15,27 @@ import java.util.Set;
 @Data
 public class PatientRequestDTO {
 
-    @NotBlank
-    private String fullName;
+    @NotBlank(message = "First name is required")
+    private String firstName;
 
-    @Email
-    @NotBlank
+    private String secondName;
+
+    @NotBlank(message = "Last name is required")
+    private String lastName;
+
+    @Email(message = "Email must be a valid email address")
+    @NotBlank(message = "Email is required")
     private String email;
 
     private String nic;
 
-    @Past(message = "dateOfBirth must be in the past")
+    @Past(message = "Date of birth must be in the past")
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate dateOfBirth;
 
     private String gender;
-    private Double height; // cm
-    private Double weight; // kg
+    private Double height;
+    private Double weight;
     private String bloodType;
     private String postalCode;
 
@@ -48,7 +54,17 @@ public class PatientRequestDTO {
     @Valid
     private List<FamilyMemberDTO> siblings;
 
-    // Set of existing disease/allergy IDs to attach
     private Set<Long> diseaseIds;
     private Set<Long> allergyIds;
+
+    public String getFullName() {
+        return NameUtil.combine(firstName, secondName, lastName);
+    }
+
+    public void setFullName(String fullName) {
+        NameUtil.NameParts parts = NameUtil.split(fullName);
+        this.firstName = parts.firstName();
+        this.secondName = parts.secondName();
+        this.lastName = parts.lastName();
+    }
 }

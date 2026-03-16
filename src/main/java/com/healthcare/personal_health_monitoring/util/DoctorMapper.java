@@ -3,33 +3,34 @@ package com.healthcare.personal_health_monitoring.util;
 import com.healthcare.personal_health_monitoring.dto.DoctorResponse;
 import com.healthcare.personal_health_monitoring.entity.Doctor;
 
-import java.time.LocalDate;
-import java.time.Period;
-
 public class DoctorMapper {
 
     private DoctorMapper() {
-        // utility class
     }
 
-    // ENTITY → DTO
-
     public static DoctorResponse toResponse(Doctor doctor) {
-        if (doctor == null) return null;
+        if (doctor == null) {
+            return null;
+        }
 
         DoctorResponse response = new DoctorResponse();
         response.setId(doctor.getId());
         response.setDoctorId(doctor.getDoctorId());
-        response.setFullName(doctor.getFullName());
+        response.setFirstName(doctor.getFirstName());
+        response.setSecondName(doctor.getSecondName());
+        response.setLastName(doctor.getLastName());
         response.setNic(doctor.getNic());
         response.setPhone(doctor.getPhone());
         response.setGender(doctor.getGender());
         response.setSpecialization(doctor.getSpecialization());
         response.setHospital(doctor.getHospital());
         response.setLicenseNumber(doctor.getLicenseNumber());
+        response.setDateOfBirth(doctor.getDateOfBirth());
         response.setAge(doctor.getAge());
+        response.setExperience(doctor.getExperience());
         response.setPhotoUrl(doctor.getPhotoUrl());
         response.setVerificationDocUrl(doctor.getVerificationDocUrl());
+        response.setJoinedDate(doctor.getJoinedDate());
 
         if (doctor.getUser() != null) {
             response.setEmail(doctor.getUser().getEmail());
@@ -39,6 +40,4 @@ public class DoctorMapper {
 
         return response;
     }
-
-
 }

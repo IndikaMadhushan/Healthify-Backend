@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.beans.factory.annotation.Value;
 
 @RestController
 @RequestMapping("/api/files")
@@ -14,14 +15,17 @@ public class FileUploadController {
 
     private final FileUploadService fileUploadService;
 
+    @Value("${supabase.bucket.medical-files}")
+    private String medicalFilesBucket;
+
     public FileUploadController(FileUploadService fileUploadService) {
         this.fileUploadService = fileUploadService;
     }
 
     @PostMapping("/upload")
     public ResponseEntity<?> upload(@RequestParam("file") MultipartFile file) {
-        String fileUrl = fileUploadService.uploadFile(file);
-        return ResponseEntity.ok(fileUrl);
+        String objectPath = fileUploadService.uploadPrivateFile(file, medicalFilesBucket, "misc");
+        return ResponseEntity.ok(objectPath);
     }
 }
 

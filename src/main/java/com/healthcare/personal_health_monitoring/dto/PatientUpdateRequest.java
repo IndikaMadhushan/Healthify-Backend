@@ -1,5 +1,6 @@
 package com.healthcare.personal_health_monitoring.dto;
 
+import com.healthcare.personal_health_monitoring.util.NameUtil;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
@@ -13,15 +14,16 @@ import java.util.Set;
 @Data
 public class PatientUpdateRequest {
 
-    // All fields optional — only provided fields will be updated
-    private String fullName;
+    private String firstName;
+    private String secondName;
+    private String lastName;
 
-    @Email
+    @Email(message = "Email must be a valid email address")
     private String email;
 
     private String nic;
 
-    @Past(message = "dateOfBirth must be in the past")
+    @Past(message = "Date of birth must be in the past")
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate dateOfBirth;
 
@@ -46,13 +48,26 @@ public class PatientUpdateRequest {
     @Valid
     private List<FamilyMemberDTO> siblings;
 
-    // Replace lists when provided
     private Set<Long> diseaseIds;
     private Set<Long> allergyIds;
 
-    // optional lists to link existing notes/surgeries if needed later
     private Set<Long> surgeryIds;
     private Set<Long> noteIds;
 
     private String nationality;
+    private String maritalStatus;
+    private String occupation;
+    private String district;
+    private String address;
+
+    public String getFullName() {
+        return NameUtil.combine(firstName, secondName, lastName);
+    }
+
+    public void setFullName(String fullName) {
+        NameUtil.NameParts parts = NameUtil.split(fullName);
+        this.firstName = parts.firstName();
+        this.secondName = parts.secondName();
+        this.lastName = parts.lastName();
+    }
 }

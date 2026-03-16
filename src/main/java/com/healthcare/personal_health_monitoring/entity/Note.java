@@ -29,5 +29,6 @@ public class Note {
 
     // Can be prescription OR report (PDF / image)
     // cloud/local storage URL
+    @Column(length = 1000)
     private String fileUrl;
 }

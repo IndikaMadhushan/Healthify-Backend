@@ -12,4 +12,6 @@ public interface AuthService {
                         MultipartFile verificationDoc);
     public AuthResponse login(String email, String password);
     String encodePassword(String rawPassword);
+    String verifyEmailOtp(String email, String otp);
+    String resendEmailOtp(String email);
 }

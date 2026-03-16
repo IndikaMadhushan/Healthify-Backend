@@ -1,9 +1,10 @@
 package com.healthcare.personal_health_monitoring.service.impl;
 
 import com.healthcare.personal_health_monitoring.entity.Report;
-import com.healthcare.personal_health_monitoring.repository.AuditLogRepository;
 import com.healthcare.personal_health_monitoring.repository.ReportRepository;
+import com.healthcare.personal_health_monitoring.repository.PatientRepository;
 import com.healthcare.personal_health_monitoring.service.AuditLogService;
+import com.healthcare.personal_health_monitoring.service.FileUploadService;
 import com.healthcare.personal_health_monitoring.service.ReportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -11,11 +12,11 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import org.springframework.web.client.RestTemplate;
+
 import java.time.LocalDate;
 import java.util.List;
 
@@ -24,7 +25,13 @@ import java.util.List;
 public class ReportServiceImpl implements ReportService {
 
     private final ReportRepository reportRepository;
+        private final PatientRepository patientRepository;
     private final AuditLogService auditLogService;
+        private final FileUploadService fileUploadService;
+        private final RestTemplate restTemplate = new RestTemplate();
+
+        @Value("${supabase.bucket.medical-files}")
+        private String medicalFilesBucket;
 
     @Override
     public List<Report> getReportByPatient(Long patientId) {
@@ -63,6 +70,36 @@ public class ReportServiceImpl implements ReportService {
         return reportRepository.findByPatientIdAndReportDateBetween(patientId, from, to);
     }
 
+        @Override
+        public Report uploadReport(
+                        Long patientId,
+                        String reportType,
+                        LocalDate reportDate,
+                        MultipartFile file
+        ) {
+                if (file == null || file.isEmpty()) {
+                        throw new RuntimeException("Report file is required");
+                }
+                if (reportType == null || reportType.isBlank()) {
+                        throw new RuntimeException("Report type is required");
+                }
+
+                String path = fileUploadService.uploadPrivateFile(
+                                file,
+                                "medical-files",
+                                "reports/patient-" + patientId + "/" + reportType
+                );
+
+                Report report = new Report();
+                report.setPatient(patientRepository.findById(patientId)
+                                .orElseThrow(() -> new RuntimeException("Patient not found")));
+                report.setReportType(reportType);
+                report.setReportDate(reportDate != null ? reportDate : LocalDate.now());
+                report.setFileUrl(path);
+
+                return reportRepository.save(report);
+        }
+
     @Override
     public ResponseEntity<byte[]> downloadReport(Long reportId) {
         Report report = reportRepository.findById(reportId)
@@ -78,24 +115,17 @@ public class ReportServiceImpl implements ReportService {
                 "DOCTOR",
                 "DOWNLOAD_REPORT",
                 report.getPatient().getId(),
-                "Doctor download report ID" + reportId
+                                "Doctor download report ID " + reportId
         );
 
-        //load file from storage
-        Path filePath = Paths.get(report.getFileUrl().replace("/uploads/", "uploads/"));
-
-        byte[] fileBytes;
-
-        try{
-            fileBytes = Files.readAllBytes(filePath);
-
-        }catch (IOException e){
-            throw new RuntimeException("Unable to read report file");
-        }
+                byte[] fileBytes = fileUploadService.downloadPrivateFile(
+                                "medical-files",
+                                report.getFileUrl()
+                );
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=report-" + reportId + ".pdf")
+                        "attachment; filename=report-" + reportId)
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(fileBytes);
     }

@@ -10,65 +10,61 @@ import org.springframework.web.bind.annotation.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-@RestController
-@RequestMapping("/uploads")
+// @RestController
+// @RequestMapping("/uploads")
 public class FileController {
 
-    private final Path rootLocation = Paths.get("uploads");
+    private final Path rootLocation = Paths.get("uploads").toAbsolutePath().normalize();
 
-    /**
-     * Serves files from the uploads directory
-     * GET /uploads/{filename}
-     */
     @GetMapping("/{filename:.+}")
     public ResponseEntity<Resource> serveFile(@PathVariable String filename) {
         try {
-            Path file = rootLocation.resolve(filename);
+            Path file = rootLocation.resolve(filename).normalize();
+
+            if (!file.startsWith(rootLocation)) {
+                return ResponseEntity.badRequest().build();
+            }
+
             Resource resource = new UrlResource(file.toUri());
 
-            if (resource.exists() || resource.isReadable()) {
-                // Determine content type
-                String contentType = determineContentType(filename);
-
+            if (resource.exists() && resource.isReadable()) {
                 return ResponseEntity.ok()
-                        .contentType(MediaType.parseMediaType(contentType))
+                        .contentType(MediaType.parseMediaType(determineContentType(filename)))
                         .header(HttpHeaders.CONTENT_DISPOSITION,
                                 "inline; filename=\"" + resource.getFilename() + "\"")
                         .body(resource);
-            } else {
-                return ResponseEntity.notFound().build();
             }
+
+            return ResponseEntity.notFound().build();
         } catch (Exception e) {
             return ResponseEntity.notFound().build();
         }
     }
 
-    /**
-     * Download endpoint - forces download instead of inline display
-     * GET /uploads/download/{filename}
-     */
     @GetMapping("/download/{filename:.+}")
     public ResponseEntity<Resource> downloadFile(@PathVariable String filename) {
         try {
-            Path file = rootLocation.resolve(filename);
+            Path file = rootLocation.resolve(filename).normalize();
+
+            if (!file.startsWith(rootLocation)) {
+                return ResponseEntity.badRequest().build();
+            }
+
             Resource resource = new UrlResource(file.toUri());
 
-            if (resource.exists() || resource.isReadable()) {
+            if (resource.exists() && resource.isReadable()) {
                 return ResponseEntity.ok()
                         .header(HttpHeaders.CONTENT_DISPOSITION,
                                 "attachment; filename=\"" + resource.getFilename() + "\"")
                         .body(resource);
-            } else {
-                return ResponseEntity.notFound().build();
             }
+
+            return ResponseEntity.notFound().build();
         } catch (Exception e) {
             return ResponseEntity.notFound().build();
         }
     }
 
-    /**
-     * Determine content type based on file extension
-     */
     private String determineContentType(String filename) {
         String extension = filename.substring(filename.lastIndexOf('.') + 1).toLowerCase();
 

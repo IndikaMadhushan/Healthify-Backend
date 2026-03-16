@@ -1,10 +1,10 @@
 package com.healthcare.personal_health_monitoring.dto;
 
+import com.healthcare.personal_health_monitoring.util.NameUtil;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.Column;
 import lombok.Builder;
 import lombok.Data;
-import org.hibernate.annotations.Collate;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -15,7 +15,9 @@ import java.util.Set;
 @Builder
 public class PatientResponse {
     private Long id;
-    private String fullName;
+    private String firstName;
+    private String secondName;
+    private String lastName;
     private String email;
     private String nic;
 
@@ -42,8 +44,8 @@ public class PatientResponse {
     private FamilyMemberDTO mother;
     private List<FamilyMemberDTO> siblings;
 
-    private Set<String> diseases; // names
-    private Set<String> allergies; // names
+    private Set<String> diseases;
+    private Set<String> allergies;
 
     private LocalDateTime updatedAt;
 
@@ -53,4 +55,8 @@ public class PatientResponse {
 
     @Column(name = "profile_image")
     private String photoUrl;
+
+    public String getFullName() {
+        return NameUtil.combine(firstName, secondName, lastName);
+    }
 }

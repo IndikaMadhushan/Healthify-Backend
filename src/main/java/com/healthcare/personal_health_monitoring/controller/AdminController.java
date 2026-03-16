@@ -1,18 +1,19 @@
 package com.healthcare.personal_health_monitoring.controller;
 
+import com.healthcare.personal_health_monitoring.dto.AdminProfileResponse;
 import com.healthcare.personal_health_monitoring.dto.DoctorResponse;
 import com.healthcare.personal_health_monitoring.dto.PatientResponse;
-import com.healthcare.personal_health_monitoring.entity.Doctor;
 import com.healthcare.personal_health_monitoring.entity.User;
+import com.healthcare.personal_health_monitoring.repository.UserRepository;
 import com.healthcare.personal_health_monitoring.service.DoctorService;
 import com.healthcare.personal_health_monitoring.service.PatientService;
 import com.healthcare.personal_health_monitoring.service.impl.AuthServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import javax.print.Doc;
 import java.util.List;
 
 @RestController
@@ -23,6 +24,7 @@ public class AdminController {
     private final AuthServiceImpl authServiceImpl;
     private final PatientService patientService;
     private final DoctorService doctorService;
+    private final UserRepository userRepository;
 
     // Approve doctor by user ID
 
@@ -32,9 +34,25 @@ public class AdminController {
         return ResponseEntity.ok("Doctor approved successfully");
     }
 
-    @GetMapping("/pending-doctors")
+    @GetMapping({"/pending-doctor", "/pending-doctors"})
     public List<DoctorResponse> pendingDoctors() {
         return doctorService.getPendingDoctors();
+    }
+
+    @GetMapping("/me")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<AdminProfileResponse> getMyProfile(Authentication auth) {
+        String email = auth.getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return ResponseEntity.ok(new AdminProfileResponse(
+                user.getId(),
+                user.getEmail(),
+                user.getRole().name(),
+                user.isEnabled(),
+                user.isEmailVerified(),
+                user.getCreatedAt()
+        ));
     }
 
     @GetMapping("/patients/{patientId}")

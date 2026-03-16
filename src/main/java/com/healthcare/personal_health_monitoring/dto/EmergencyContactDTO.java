@@ -6,13 +6,13 @@ import lombok.Data;
 
 @Data
 public class EmergencyContactDTO {
-    @NotBlank
+    @NotBlank(message = "Name is required")
     private String name;
 
-    @NotBlank
-    @Pattern(regexp="^\\+?[0-9\\-\\s]{6,20}$", message="invalid phone")
+    @NotBlank(message = "Phone number is required")
+    @Pattern(regexp="^\\+?[0-9\\-\\s]{6,20}$", message="Phone number must be valid")
     private String phoneNumber;
 
-    @NotBlank
+    @NotBlank(message = "Relationship is required")
     private String relationship;
 }
