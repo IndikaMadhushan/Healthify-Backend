@@ -42,6 +42,9 @@ public class Patient {
     })
     private PersonName name = new PersonName();
 
+        @Column(name = "full_name", nullable = false)
+        private String fullName;
+
     @Column(name = "patient_code", unique = true, nullable = false)
     private String patientId;
 
@@ -157,10 +160,14 @@ public class Patient {
 
     @Transient
     public String getFullName() {
+        if (fullName != null && !fullName.isBlank()) {
+            return fullName;
+        }
         return name != null ? name.getFullName() : null;
     }
 
     public void setFullName(String fullName) {
+        this.fullName = fullName;
         if (name == null) {
             name = new PersonName();
         }
