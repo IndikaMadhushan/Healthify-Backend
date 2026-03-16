@@ -65,10 +65,13 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public void registerPatient(PatientRegisterRequest req)  {
-        // Prevent duplicate emails in users
-        if (userRepository.findByEmail(req.getEmail()).isPresent()) {
-            throw new IllegalArgumentException("Email already in use. Use another Email.");
-        }
+        // Prevent duplicate emails in users (allow retry if email not verified)
+        userRepository.findByEmail(req.getEmail()).ifPresent(existingUser -> {
+            if (existingUser.isEmailVerified()) {
+                throw new IllegalArgumentException("Email already in use. Use another Email.");
+            }
+            removeUnverifiedUser(existingUser);
+        });
 
         PendingRegistration existing = pendingRegistrationRepository.findByEmail(req.getEmail()).orElse(null);
         if (existing != null && existing.getRole() != UserRole.PATIENT) {
@@ -115,10 +118,13 @@ public class AuthServiceImpl implements AuthService {
             DoctorRegisterRequest req,
             MultipartFile verificationDoc
     ){
-        // to Prevent duplicate emails
-        if (userRepository.findByEmail(req.getEmail()).isPresent()) {
-            throw new IllegalArgumentException("Email already in use. Use another Email.");
-        }
+        // to Prevent duplicate emails (allow retry if email not verified)
+        userRepository.findByEmail(req.getEmail()).ifPresent(existingUser -> {
+            if (existingUser.isEmailVerified()) {
+                throw new IllegalArgumentException("Email already in use. Use another Email.");
+            }
+            removeUnverifiedUser(existingUser);
+        });
 
         PendingRegistration existing = pendingRegistrationRepository.findByEmail(req.getEmail()).orElse(null);
         if (existing != null && existing.getRole() != UserRole.DOCTOR) {
@@ -376,6 +382,18 @@ public class AuthServiceImpl implements AuthService {
 
         // Optional: Send rejection email
         emailService.sendRejectionEmail(user.getEmail(), doctor.getFullName());
+    }
+
+    private void removeUnverifiedUser(User user) {
+        if (user.isEmailVerified()) {
+            return;
+        }
+
+        patientRepository.findByUserEmail(user.getEmail())
+                .ifPresent(patientRepository::delete);
+        doctorRepository.findByUserEmail(user.getEmail())
+                .ifPresent(doctorRepository::delete);
+        userRepository.delete(user);
     }
 
 }
