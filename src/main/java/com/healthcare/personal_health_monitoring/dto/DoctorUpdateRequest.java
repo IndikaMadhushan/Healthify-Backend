@@ -8,14 +8,14 @@ import java.time.LocalDate;
 
 @Data
 public class DoctorUpdateRequest {
-    @NotBlank(message = "First name is required")
-    private String firstName;
-
-    private String secondName;
-
-    @NotBlank(message = "Last name is required")
-    private String lastName;
-
+//    @NotBlank(message = "First name is required")
+//    private String firstName;
+//
+//    private String secondName;
+//
+//    @NotBlank(message = "Last name is required")
+//    private String lastName;
+private String fullName;
     private String phone;
 
     @NotBlank(message = "Hospital is required")
@@ -26,14 +26,14 @@ public class DoctorUpdateRequest {
 
     private LocalDate dateOfBirth;
 
-    public String getFullName() {
-        return NameUtil.combine(firstName, secondName, lastName);
-    }
-
-    public void setFullName(String fullName) {
-        NameUtil.NameParts parts = NameUtil.split(fullName);
-        this.firstName = parts.firstName();
-        this.secondName = parts.secondName();
-        this.lastName = parts.lastName();
-    }
+//    public String getFullName() {
+//        return NameUtil.combine(firstName, secondName, lastName);
+//    }
+//
+//    public void setFullName(String fullName) {
+//        NameUtil.NameParts parts = NameUtil.split(fullName);
+//        this.firstName = parts.firstName();
+//        this.secondName = parts.secondName();
+//        this.lastName = parts.lastName();
+//    }
 }

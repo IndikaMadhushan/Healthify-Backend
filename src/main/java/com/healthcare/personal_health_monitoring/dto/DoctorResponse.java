@@ -1,6 +1,7 @@
 package com.healthcare.personal_health_monitoring.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.healthcare.personal_health_monitoring.util.NameUtil;
 import jakarta.persistence.Column;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,7 +23,10 @@ public class DoctorResponse {
     // GENERATED doctor code (what doctors/admins actually use)
     private String doctorId;
 
-    private String fullName;
+
+    private String firstName;
+    private String secondName;
+    private String lastName;
     private String email;
 
     private String nic;
@@ -49,5 +53,9 @@ public class DoctorResponse {
 
     private Boolean enabled;
     private String role;
+
+    public String getFullName() {
+        return NameUtil.combine(firstName, secondName, lastName);
+    }
 
 }

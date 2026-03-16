@@ -166,6 +166,7 @@ public class DoctorServiceImpl implements DoctorService {
         doctor.setHospital(request.getHospital());
         doctor.setSpecialization(request.getSpecialization());
         doctor.setDateOfBirth(request.getDateOfBirth());
+        doctor.setGender(request.getge);
 
 
         if (request.getDateOfBirth() != null) {
