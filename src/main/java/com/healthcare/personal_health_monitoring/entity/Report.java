@@ -19,6 +19,7 @@ public class Report {
     private String reportType;
     private LocalDate reportDate;
 
+    @Column(length = 1000)
     private String fileUrl;
 
     @ManyToOne

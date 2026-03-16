@@ -47,6 +47,7 @@ public class PendingRegistration {
     private String specialization;
     private String hospital;
     private String licenseNumber;
+    @Column(length = 1000)
     private String verificationDocUrl;
 
     @Column(nullable = false)

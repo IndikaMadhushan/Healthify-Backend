@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -24,6 +25,9 @@ public class NoteServiceImpl implements NoteService {
     private final PatientRepository patientRepository;
     private final DoctorRepository doctorRepository;
     private final FileUploadService fileUploadService;
+
+    @Value("${supabase.bucket.medical-files}")
+    private String medicalFilesBucket;
 
     @Override
     public Note saveNote(Note note) {
@@ -76,8 +80,12 @@ public class NoteServiceImpl implements NoteService {
             note.setDescription(description);
 
             if (file != null && !file.isEmpty()) {
-                String url = fileUploadService.uploadFile(file);
-                note.setFileUrl(url);
+                String path = fileUploadService.uploadPrivateFile(
+                    file,
+                    "medical-files",
+                    "notes/patient-" + patientId + "/doctor-" + doctor.getId()
+                );
+                note.setFileUrl(path);
             }
 
             return noteRepository.save(note);
