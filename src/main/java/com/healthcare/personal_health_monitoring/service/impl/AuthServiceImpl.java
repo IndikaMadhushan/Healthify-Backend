@@ -66,12 +66,9 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public void registerPatient(PatientRegisterRequest req)  {
         // Prevent duplicate emails in users (allow retry if email not verified)
-        userRepository.findByEmail(req.getEmail()).ifPresent(existingUser -> {
-            if (existingUser.isEmailVerified()) {
-                throw new IllegalArgumentException("Email already in use. Use another Email.");
-            }
-            removeUnverifiedUser(existingUser);
-        });
+        if (refreshOtpForUnverifiedUser(req.getEmail(), UserRole.PATIENT, req.getPassword())) {
+            return;
+        }
 
         PendingRegistration existing = pendingRegistrationRepository.findByEmail(req.getEmail()).orElse(null);
         if (existing != null && existing.getRole() != UserRole.PATIENT) {
@@ -119,12 +116,9 @@ public class AuthServiceImpl implements AuthService {
             MultipartFile verificationDoc
     ){
         // to Prevent duplicate emails (allow retry if email not verified)
-        userRepository.findByEmail(req.getEmail()).ifPresent(existingUser -> {
-            if (existingUser.isEmailVerified()) {
-                throw new IllegalArgumentException("Email already in use. Use another Email.");
-            }
-            removeUnverifiedUser(existingUser);
-        });
+        if (refreshOtpForUnverifiedUser(req.getEmail(), UserRole.DOCTOR, req.getPassword())) {
+            return;
+        }
 
         PendingRegistration existing = pendingRegistrationRepository.findByEmail(req.getEmail()).orElse(null);
         if (existing != null && existing.getRole() != UserRole.DOCTOR) {
@@ -384,16 +378,31 @@ public class AuthServiceImpl implements AuthService {
         emailService.sendRejectionEmail(user.getEmail(), doctor.getFullName());
     }
 
-    private void removeUnverifiedUser(User user) {
-        if (user.isEmailVerified()) {
-            return;
+    private boolean refreshOtpForUnverifiedUser(String email, UserRole role, String rawPassword) {
+        User user = userRepository.findByEmail(email).orElse(null);
+        if (user == null) {
+            return false;
         }
 
-        patientRepository.findByUserEmail(user.getEmail())
-                .ifPresent(patientRepository::delete);
-        doctorRepository.findByUserEmail(user.getEmail())
-                .ifPresent(doctorRepository::delete);
-        userRepository.delete(user);
+        if (user.isEmailVerified()) {
+            throw new IllegalArgumentException("Email already in use. Use another Email.");
+        }
+
+        if (user.getRole() != role) {
+            throw new IllegalArgumentException("Email is already registered for a different account type.");
+        }
+
+        String otp = OtpGenerator.generateOtp();
+        user.setPassword(passwordEncoder.encode(rawPassword));
+        user.setEmailOtp(otp);
+        user.setOtpGeneratedAt(LocalDateTime.now());
+        userRepository.save(user);
+
+        pendingRegistrationRepository.findByEmail(email)
+                .ifPresent(pendingRegistrationRepository::delete);
+
+        emailService.sendOtpEmail(email, otp);
+        return true;
     }
 
 }
