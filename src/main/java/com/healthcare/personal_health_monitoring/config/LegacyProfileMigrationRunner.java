@@ -1,5 +1,6 @@
 package com.healthcare.personal_health_monitoring.config;
 
+import com.healthcare.personal_health_monitoring.entity.HealthMetricType;
 import com.healthcare.personal_health_monitoring.util.NameUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,9 +25,32 @@ public class LegacyProfileMigrationRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+        migratePatientHealthMetricSchema();
         migratePatientData();
         migrateDoctorData();
         migratePendingRegistrationNames();
+    }
+
+    private void migratePatientHealthMetricSchema() {
+        if (!columnExists("patient_health_metrics", "metric_type")) {
+            return;
+        }
+
+        String metricType = getColumnType("patient_health_metrics", "metric_type");
+        if (metricType != null && metricType.toLowerCase().startsWith("varchar")) {
+            return;
+        }
+
+        jdbcTemplate.execute("""
+                ALTER TABLE patient_health_metrics
+                MODIFY COLUMN metric_type VARCHAR(64) NULL
+                """);
+
+        log.info(
+                "Updated patient_health_metrics.metric_type to VARCHAR(64) for {} metric values: {}",
+                HealthMetricType.values().length,
+                java.util.Arrays.toString(HealthMetricType.values())
+        );
     }
 
     private void migratePatientData() {
@@ -287,6 +311,16 @@ public class LegacyProfileMigrationRunner implements CommandLineRunner {
                   AND COLUMN_NAME = ?
                 """, Integer.class, tableName, columnName);
         return matches != null && matches > 0;
+    }
+
+    private String getColumnType(String tableName, String columnName) {
+        return jdbcTemplate.queryForObject("""
+                SELECT COLUMN_TYPE
+                FROM INFORMATION_SCHEMA.COLUMNS
+                WHERE TABLE_SCHEMA = DATABASE()
+                  AND TABLE_NAME = ?
+                  AND COLUMN_NAME = ?
+                """, String.class, tableName, columnName);
     }
 
     private long asLong(Object value) {
