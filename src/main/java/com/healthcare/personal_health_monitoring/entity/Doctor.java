@@ -82,6 +82,9 @@ public class Doctor {
     @Column(unique = true, nullable = false, table = "doctor_professional_details")
     private String licenseNumber;
 
+    @Column(name = "license_number", nullable = false, unique = true)
+    private String legacyLicenseNumber;
+
     @Column(table = "doctor_personal_details")
     private LocalDate dateOfBirth;
 
