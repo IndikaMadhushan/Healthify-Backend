@@ -92,18 +92,7 @@ public class DoctorServiceImpl implements DoctorService {
                 .orElseThrow(() -> new RuntimeException("Doctor not found"));
 
         //maps to response dto
-        return new DoctorProfileResponse(
-            doctor.getDoctorId(),
-            doctor.getFullName(),
-            doctor.getUser().getEmail(),
-            doctor.getNic(),
-            doctor.getSpecialization(),
-            doctor.getHospital(),
-            doctor.getLicenseNumber(),
-            doctor.getPhone(),
-            doctor.getAge(),
-            doctor.getPhotoUrl()
-        );
+        return toProfileResponse(doctor);
 
     }
 
@@ -118,11 +107,14 @@ public class DoctorServiceImpl implements DoctorService {
                 .orElseThrow(() -> new RuntimeException("Doctor no found"));
 
         //update allowed fields
-        doctor.setFullName(request.getFullName());
+        doctor.setFirstName(request.getFirstName());
+        doctor.setSecondName(request.getSecondName());
+        doctor.setLastName(request.getLastName());
         doctor.setPhone(request.getPhone());
         doctor.setHospital(request.getHospital());
         doctor.setSpecialization(request.getSpecialization());
         if(request.getDateOfBirth() != null) {
+            doctor.setDateOfBirth(request.getDateOfBirth());
             doctor.setAge(AgeUtil.calculateAge(request.getDateOfBirth()));
         }
 
@@ -130,18 +122,7 @@ public class DoctorServiceImpl implements DoctorService {
         Doctor saved = doctorRepository.save(doctor);
 
         //return updated profile
-        return new DoctorProfileResponse(
-                saved.getDoctorId(),
-                saved.getFullName(),
-                saved.getUser().getEmail(),
-                saved.getNic(),
-                saved.getSpecialization(),
-                saved.getHospital(),
-                saved.getLicenseNumber(),
-                saved.getPhone(),
-                saved.getAge(),
-                saved.getPhotoUrl()
-        );
+        return toProfileResponse(saved);
     }
 
     @Override
@@ -176,5 +157,22 @@ public class DoctorServiceImpl implements DoctorService {
         return pendingDoctors.stream()
                 .map(DoctorMapper::toResponse)
                 .collect(Collectors.toList());
+    }
+
+    private DoctorProfileResponse toProfileResponse(Doctor doctor) {
+        return new DoctorProfileResponse(
+                doctor.getDoctorId(),
+                doctor.getFirstName(),
+                doctor.getSecondName(),
+                doctor.getLastName(),
+                doctor.getUser().getEmail(),
+                doctor.getNic(),
+                doctor.getSpecialization(),
+                doctor.getHospital(),
+                doctor.getLicenseNumber(),
+                doctor.getPhone(),
+                doctor.getAge(),
+                doctor.getPhotoUrl()
+        );
     }
 }

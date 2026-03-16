@@ -1,5 +1,6 @@
 package com.healthcare.personal_health_monitoring.dto;
 
+import com.healthcare.personal_health_monitoring.util.NameUtil;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import lombok.Data;
@@ -13,9 +14,12 @@ import java.util.Set;
 @Builder
 public class PatientResponseDTO {
     private Long id;
-    private String fullName;
+    private String firstName;
+    private String secondName;
+    private String lastName;
     private String email;
     private String nic;
+
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate dateOfBirth;
     private Integer age;
@@ -44,4 +48,8 @@ public class PatientResponseDTO {
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    public String getFullName() {
+        return NameUtil.combine(firstName, secondName, lastName);
+    }
 }

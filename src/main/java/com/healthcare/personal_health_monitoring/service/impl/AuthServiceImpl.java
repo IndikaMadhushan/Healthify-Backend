@@ -25,6 +25,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -53,6 +55,7 @@ public class AuthServiceImpl implements AuthService {
     private final EmailService emailService;
 
 
+
     /**
      Registers a new user.
         PATIENT → enabled immediately
@@ -62,9 +65,9 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public void registerPatient(PatientRegisterRequest req)  {
-        // Prevent duplicate emails in users
-        if (userRepository.findByEmail(req.getEmail()).isPresent()) {
-            throw new IllegalArgumentException("Email already in use. Use another Email.");
+        // Prevent duplicate emails in users (allow retry if email not verified)
+        if (refreshOtpForUnverifiedUser(req.getEmail(), UserRole.PATIENT, req.getPassword())) {
+            return;
         }
 
         PendingRegistration existing = pendingRegistrationRepository.findByEmail(req.getEmail()).orElse(null);
@@ -112,9 +115,9 @@ public class AuthServiceImpl implements AuthService {
             DoctorRegisterRequest req,
             MultipartFile verificationDoc
     ){
-        // to Prevent duplicate emails
-        if (userRepository.findByEmail(req.getEmail()).isPresent()) {
-            throw new IllegalArgumentException("Email already in use. Use another Email.");
+        // to Prevent duplicate emails (allow retry if email not verified)
+        if (refreshOtpForUnverifiedUser(req.getEmail(), UserRole.DOCTOR, req.getPassword())) {
+            return;
         }
 
         PendingRegistration existing = pendingRegistrationRepository.findByEmail(req.getEmail()).orElse(null);
@@ -136,7 +139,11 @@ public class AuthServiceImpl implements AuthService {
         }
 
         //upload verification document
-        String docUrl = fileUploadService.uploadFile(verificationDoc);
+        String docPath = fileUploadService.uploadPrivateFile(
+            verificationDoc,
+            "doctor-verification-docs",
+            "pending/" + req.getEmail()
+        );
 
         if(!emailValidationService.isValidEmail(req.getEmail())){
             throw new RuntimeException("Email does ot exist or invalid");
@@ -158,7 +165,7 @@ public class AuthServiceImpl implements AuthService {
         pending.setDateOfBirth(req.getDateOfBirth());
         pending.setEmailOtp(otp);
         pending.setOtpGeneratedAt(LocalDateTime.now());
-        pending.setVerificationDocUrl(docUrl);
+        pending.setVerificationDocUrl(docPath);
 
         pendingRegistrationRepository.save(pending);
 
@@ -172,16 +179,25 @@ public class AuthServiceImpl implements AuthService {
     public AuthResponse login(String email, String password) {
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.UNAUTHORIZED,
+                        "Wrong email or password"
+                ));
 
         // Password verification
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new RuntimeException("Invalid credentials");
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "Wrong email or password"
+            );
         }
 
         //block until the email validation
         if(!user.isEmailVerified()){
-            throw new RuntimeException("Please verify you email before log in");
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "Please verify your email before log in"
+            );
         }
 
         // Block disabled accounts
@@ -360,6 +376,33 @@ public class AuthServiceImpl implements AuthService {
 
         // Optional: Send rejection email
         emailService.sendRejectionEmail(user.getEmail(), doctor.getFullName());
+    }
+
+    private boolean refreshOtpForUnverifiedUser(String email, UserRole role, String rawPassword) {
+        User user = userRepository.findByEmail(email).orElse(null);
+        if (user == null) {
+            return false;
+        }
+
+        if (user.isEmailVerified()) {
+            throw new IllegalArgumentException("Email already in use. Use another Email.");
+        }
+
+        if (user.getRole() != role) {
+            throw new IllegalArgumentException("Email is already registered for a different account type.");
+        }
+
+        String otp = OtpGenerator.generateOtp();
+        user.setPassword(passwordEncoder.encode(rawPassword));
+        user.setEmailOtp(otp);
+        user.setOtpGeneratedAt(LocalDateTime.now());
+        userRepository.save(user);
+
+        pendingRegistrationRepository.findByEmail(email)
+                .ifPresent(pendingRegistrationRepository::delete);
+
+        emailService.sendOtpEmail(email, otp);
+        return true;
     }
 
 }

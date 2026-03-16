@@ -33,7 +33,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET,  "/api/lab-reports/patient/**").hasRole("DOCTOR")
                         .requestMatchers("/api/lab-reports/my/**").hasRole("PATIENT")
                         .requestMatchers(HttpMethod.OPTIONS,"/**").permitAll()
-                        .requestMatchers("/uploads/**").permitAll()
+//                        .requestMatchers("/uploads/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                                 .requestMatchers("/api/v1/cpage/approve-edit/**").permitAll()
                         .requestMatchers("/api/patients/**").hasAnyRole("PATIENT", "DOCTOR", "ADMIN")
