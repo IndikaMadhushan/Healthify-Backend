@@ -128,8 +128,29 @@ public class FileUploadServiceImpl implements FileUploadService {
     }
 
     private String buildObjectPath(String folder, String originalFilename) {
-        String safeName = originalFilename == null ? "file" : originalFilename.replaceAll("\\s+", "_");
-        return folder + "/" + UUID.randomUUID() + "_" + safeName;
+        String safeFolder = sanitizePathSegment(folder, "misc");
+        String safeName = sanitizePathSegment(originalFilename, "file");
+        return safeFolder + "/" + UUID.randomUUID() + "_" + safeName;
+    }
+
+    private String sanitizePathSegment(String value, String fallback) {
+        if (value == null) {
+            return fallback;
+        }
+        String trimmed = value.trim();
+        if (trimmed.isEmpty()) {
+            return fallback;
+        }
+        String normalized = trimmed.replace("\\", "/");
+        while (normalized.startsWith("/")) {
+            normalized = normalized.substring(1);
+        }
+        while (normalized.endsWith("/")) {
+            normalized = normalized.substring(0, normalized.length() - 1);
+        }
+
+        String cleaned = normalized.replaceAll("[^a-zA-Z0-9/_\\.-]", "_");
+        return cleaned.isEmpty() ? fallback : cleaned;
     }
 
     private String encodePath(String path) {
