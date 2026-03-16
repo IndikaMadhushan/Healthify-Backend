@@ -129,22 +129,15 @@ public class AuthServiceImpl implements AuthService {
                 || (existing == null && pendingRegistrationRepository.existsByNic(req.getNic()))
                 || (existing != null && pendingRegistrationRepository.existsByNicAndEmailNot(req.getNic(), req.getEmail()))) {
             throw new IllegalArgumentException("NIC already registered as a doctor.");
-                String fullName = resolveNonEmptyString(pending.getFullName(), pending.getEmail());
-                String gender = resolveNonEmptyString(pending.getGender(), "UNKNOWN");
-                String hospital = resolveNonEmptyString(pending.getHospital(), "UNKNOWN");
-                String licenseNumber = resolveNonEmptyString(
-                        pending.getLicenseNumber(),
-                        "UNKNOWN-" + user.getId()
-                );
-                doctor.setFullName(fullName);
-                doctor.setGender(gender);
-                doctor.setLegacyGender(gender);
+        }
+
+        // prevent duplicate Licence number
         if (doctorRepository.findByLicenseNumber(req.getLicenseNumber()).isPresent()
-                doctor.setHospital(hospital);
-                doctor.setLegacyHospital(hospital);
+                || (existing == null && pendingRegistrationRepository.existsByLicenseNumber(req.getLicenseNumber()))
+                || (existing != null && pendingRegistrationRepository.existsByLicenseNumberAndEmailNot(req.getLicenseNumber(), req.getEmail()))) {
             throw new IllegalArgumentException("Licence is already registered as a doctor.");
-                doctor.setLicenseNumber(licenseNumber);
-                doctor.setLegacyLicenseNumber(licenseNumber);
+        }
+
         //upload verification document
         String docPath = fileUploadService.uploadPrivateFile(
             verificationDoc,
@@ -177,13 +170,6 @@ public class AuthServiceImpl implements AuthService {
         pendingRegistrationRepository.save(pending);
 
         emailService.sendOtpEmail(req.getEmail(), otp);
-    private String resolveNonEmptyString(String value, String fallback) {
-        if (value == null) {
-            return fallback;
-        }
-        String trimmed = value.trim();
-        return trimmed.isEmpty() ? fallback : trimmed;
-    }
     }
 
 
@@ -279,17 +265,25 @@ public class AuthServiceImpl implements AuthService {
                 patient.setUpdatedAt(LocalDateTime.now());
                 patientRepository.save(patient);
             } else if (pending.getRole() == UserRole.DOCTOR) {
+                String fullName = resolveNonEmptyString(pending.getFullName(), pending.getEmail());
+                String gender = resolveNonEmptyString(pending.getGender(), "UNKNOWN");
+                String hospital = resolveNonEmptyString(pending.getHospital(), "UNKNOWN");
+                String licenseNumber = resolveNonEmptyString(
+                        pending.getLicenseNumber(),
+                        "UNKNOWN-" + user.getId()
+                );
+
                 Doctor doctor = new Doctor();
                 doctor.setUser(user);
-                doctor.setFullName(pending.getFullName());
-                doctor.setGender(pending.getGender());
-                doctor.setLegacyGender(pending.getGender());
+                doctor.setFullName(fullName);
+                doctor.setGender(gender);
+                doctor.setLegacyGender(gender);
                 doctor.setSpecialization(pending.getSpecialization());
-                doctor.setHospital(pending.getHospital());
-                doctor.setLegacyHospital(pending.getHospital());
+                doctor.setHospital(hospital);
+                doctor.setLegacyHospital(hospital);
                 doctor.setNic(pending.getNic());
-                doctor.setLicenseNumber(pending.getLicenseNumber());
-                doctor.setLegacyLicenseNumber(pending.getLicenseNumber());
+                doctor.setLicenseNumber(licenseNumber);
+                doctor.setLegacyLicenseNumber(licenseNumber);
                 doctor.setDateOfBirth(pending.getDateOfBirth());
                 doctor.setAge(AgeUtil.calculateAge(pending.getDateOfBirth()));
                 doctor.setVerificationDocUrl(pending.getVerificationDocUrl());
@@ -393,6 +387,14 @@ public class AuthServiceImpl implements AuthService {
 
         // Optional: Send rejection email
         emailService.sendRejectionEmail(user.getEmail(), doctor.getFullName());
+    }
+
+    private String resolveNonEmptyString(String value, String fallback) {
+        if (value == null) {
+            return fallback;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? fallback : trimmed;
     }
 
     private boolean refreshOtpForUnverifiedUser(String email, UserRole role, String rawPassword) {
