@@ -37,6 +37,9 @@ public class PendingRegistration {
     })
     private PersonName name = new PersonName();
 
+        @Column(name = "full_name", nullable = false)
+        private String fullName;
+
     @Column(nullable = false)
     private LocalDate dateOfBirth;
 
@@ -61,10 +64,14 @@ public class PendingRegistration {
 
     @Transient
     public String getFullName() {
+        if (fullName != null && !fullName.isBlank()) {
+            return fullName;
+        }
         return name != null ? name.getFullName() : null;
     }
 
     public void setFullName(String fullName) {
+        this.fullName = fullName;
         if (name == null) {
             name = new PersonName();
         }
