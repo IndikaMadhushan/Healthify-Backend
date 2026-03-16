@@ -9,4 +9,7 @@ import java.util.List;
 public interface MedicationRepo extends JpaRepository<Medication, Integer> {
 
     List<Medication> findAllByConsultPage_ConsultId(int consultId);
+
+    void deleteByConsultPage_ConsultId(int consultId);
+
 }
