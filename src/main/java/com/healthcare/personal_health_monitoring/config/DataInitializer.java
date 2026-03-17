@@ -10,6 +10,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
@@ -23,6 +24,7 @@ public class DataInitializer implements CommandLineRunner {
     private final DoctorRepository doctorRepository;
 
     @Override
+    @Transactional
     public void run(String... args) {
 
         //ADMIN CREATION
@@ -45,7 +47,7 @@ public class DataInitializer implements CommandLineRunner {
 
         if (adminUser != null && adminRepository.findById(adminUser.getId()).isEmpty()) {
             Admin adminProfile = new Admin();
-            adminProfile.setUser(userRepository.getReferenceById(adminUser.getId()));
+            adminProfile.setUser(userRepository.findById(adminUser.getId()).orElseThrow());
             adminRepository.save(adminProfile);
         }
 
