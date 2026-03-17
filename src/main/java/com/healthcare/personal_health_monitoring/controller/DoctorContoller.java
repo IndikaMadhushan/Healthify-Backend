@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -50,6 +51,13 @@ public class DoctorContoller {
             @RequestBody @Valid DoctorUpdateRequest request
             ){
         return ResponseEntity.ok(doctorService.updateMyProfile(request));
+    }
+
+    @PostMapping("/me/profile-image")
+    public ResponseEntity<String> uploadMyProfileImage(
+            @RequestPart("image") MultipartFile image
+    ) {
+        return ResponseEntity.ok(doctorService.uploadMyProfileImage(image));
     }
 
 }

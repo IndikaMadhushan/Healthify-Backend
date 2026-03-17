@@ -24,6 +24,8 @@ public class DoctorUpdateRequest {
     @NotBlank(message = "Specialization is required")
     private String specialization;
 
+    private String gender;
+
     private LocalDate dateOfBirth;
 
     public String getFullName() {

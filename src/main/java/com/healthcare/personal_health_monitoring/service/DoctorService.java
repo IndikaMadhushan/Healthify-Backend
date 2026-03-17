@@ -4,6 +4,7 @@ import com.healthcare.personal_health_monitoring.dto.DoctorProfileResponse;
 import com.healthcare.personal_health_monitoring.dto.DoctorResponse;
 import com.healthcare.personal_health_monitoring.dto.DoctorUpdateRequest;
 import com.healthcare.personal_health_monitoring.entity.Doctor;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,6 +19,7 @@ public interface DoctorService {
     void deleteDoctor(Long id);
     DoctorProfileResponse getMyProfile();
     DoctorProfileResponse updateMyProfile(DoctorUpdateRequest request);
+    String uploadMyProfileImage(MultipartFile image);
     void toggleDoctorStatus(String doctorId);
     List<DoctorResponse> getPendingDoctors();
 }
