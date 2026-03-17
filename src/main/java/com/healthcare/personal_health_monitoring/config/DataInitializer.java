@@ -45,7 +45,7 @@ public class DataInitializer implements CommandLineRunner {
 
         if (adminUser != null && adminRepository.findById(adminUser.getId()).isEmpty()) {
             Admin adminProfile = new Admin();
-            adminProfile.setUser(adminUser);
+            adminProfile.setUser(userRepository.getReferenceById(adminUser.getId()));
             adminRepository.save(adminProfile);
         }
 
