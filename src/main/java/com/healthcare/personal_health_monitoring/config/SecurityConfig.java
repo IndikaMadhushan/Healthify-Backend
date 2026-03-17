@@ -49,7 +49,7 @@ public class SecurityConfig {
 //                        .requestMatchers("/api/reminders/other/**").hasRole("PATIENT")
 //                        .requestMatchers("/api/reminders/period/**").hasRole("PATIENT")
                         .requestMatchers("/api/ui/reminders/**").hasRole("PATIENT")
-
+                                .requestMatchers("/api/reviews/**").permitAll()
                         // .requestMatchers("/api/metrics/**").hasRole("PATIENT")
                         .anyRequest().authenticated()
                 )

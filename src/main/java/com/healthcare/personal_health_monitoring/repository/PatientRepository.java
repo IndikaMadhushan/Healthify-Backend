@@ -19,4 +19,7 @@ public interface PatientRepository extends JpaRepository<Patient, Long> {
     //Optional<Patient> findById(Long patientId);
    // Patient<Patient> findByPatientId(String patientId);
     List<Patient> findByNicContainingIgnoreCase(String nic);
+    Optional<Patient> findByUserId(long userId);
+
+
 }
