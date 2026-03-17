@@ -3,16 +3,19 @@ package com.healthcare.personal_health_monitoring.controller;
 import com.healthcare.personal_health_monitoring.dto.*;
 import com.healthcare.personal_health_monitoring.entity.HealthMetricType;
 import com.healthcare.personal_health_monitoring.entity.PatientHealthMetric;
+import com.healthcare.personal_health_monitoring.service.PatientMedicalInfoService;
 import com.healthcare.personal_health_monitoring.service.PatientService;
 import com.healthcare.personal_health_monitoring.service.PatientHealthMetricService;
 import com.healthcare.personal_health_monitoring.util.BmiUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -22,6 +25,7 @@ import java.util.List;
 public class PatientController {
 
     private final PatientService patientService;
+    private final PatientMedicalInfoService patientMedicalInfoService;
     private final PatientHealthMetricService patientHealthMetricService;
 
     // Create patient - if we want to create via /auth/register ignore this
@@ -47,6 +51,13 @@ public class PatientController {
         return ResponseEntity.ok(patientService.getPatientById(id));
     }
 
+    @GetMapping("/{id}/medical-info")
+    @PreAuthorize("hasRole('PATIENT') or hasRole('DOCTOR') or hasRole('ADMIN')")
+    public ResponseEntity<PatientMedicalInfoDto> getMedicalInfo(@PathVariable Long id, Authentication auth) {
+        ensurePatientOwnsRecordIfNeeded(id, auth);
+        return ResponseEntity.ok(patientMedicalInfoService.getMedicalInfo(id));
+    }
+
     // Update patient — patient can update their own record, doctors/admins can update any
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('PATIENT') or hasRole('DOCTOR') or hasRole('ADMIN')")
@@ -64,6 +75,17 @@ public class PatientController {
         }
         PatientResponse resp = patientService.updatePatient(id, req);
         return ResponseEntity.ok(resp);
+    }
+
+    @PutMapping("/{id}/medical-info")
+    @PreAuthorize("hasRole('PATIENT') or hasRole('DOCTOR') or hasRole('ADMIN')")
+    public ResponseEntity<PatientMedicalInfoDto> updateMedicalInfo(
+            @PathVariable Long id,
+            @RequestBody PatientMedicalInfoDto req,
+            Authentication auth
+    ) {
+        ensurePatientOwnsRecordIfNeeded(id, auth);
+        return ResponseEntity.ok(patientMedicalInfoService.saveMedicalInfo(id, req));
     }
 
 
@@ -116,6 +138,21 @@ public class PatientController {
         String tip = BmiUtil.getHealthTip(category);
 
         return new BmiResponse(bmi, category, tip);
+    }
+
+    private void ensurePatientOwnsRecordIfNeeded(Long patientId, Authentication auth) {
+        boolean isPatient = auth.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_PATIENT"));
+
+        if (!isPatient) {
+            return;
+        }
+
+        String email = auth.getName();
+        PatientResponse target = patientService.getPatientById(patientId);
+        if (!target.getEmail().equalsIgnoreCase(email)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You can only access your own medical info");
+        }
     }
 
 }
