@@ -32,6 +32,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.GET,  "/api/lab-reports/patient/**").hasRole("DOCTOR")
                         .requestMatchers("/api/lab-reports/my/**").hasRole("PATIENT")
+                        .requestMatchers(HttpMethod.GET, "/api/doctors/reports/patient/**").hasAnyRole("DOCTOR", "PATIENT")
+                        .requestMatchers(HttpMethod.POST, "/api/doctors/reports/patient/**").hasAnyRole("DOCTOR", "PATIENT")
+                        .requestMatchers(HttpMethod.GET, "/api/doctors/reports/*/download").hasAnyRole("DOCTOR", "PATIENT")
                         .requestMatchers(HttpMethod.OPTIONS,"/**").permitAll()
 //                        .requestMatchers("/uploads/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
