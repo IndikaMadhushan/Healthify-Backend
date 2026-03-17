@@ -1,6 +1,7 @@
 package com.healthcare.personal_health_monitoring.config;
 
 import com.healthcare.personal_health_monitoring.entity.*;
+import com.healthcare.personal_health_monitoring.repository.AdminRepository;
 import com.healthcare.personal_health_monitoring.repository.DoctorRepository;
 import com.healthcare.personal_health_monitoring.repository.IdSequenceRepository;
 import com.healthcare.personal_health_monitoring.repository.UserRepository;
@@ -17,6 +18,7 @@ import java.time.LocalDateTime;
 public class DataInitializer implements CommandLineRunner {
 
     private final UserRepository userRepository;
+    private final AdminRepository adminRepository;
     private final PasswordEncoder passwordEncoder;
     private final DoctorRepository doctorRepository;
 
@@ -24,7 +26,9 @@ public class DataInitializer implements CommandLineRunner {
     public void run(String... args) {
 
         //ADMIN CREATION
-        if (userRepository.findByEmail("admin@healthcare.com").isEmpty()) {
+        User adminUser = userRepository.findByEmail("admin@healthcare.com").orElse(null);
+
+        if (adminUser == null) {
 
             User admin = new User();
             //admin.setFullName("System Admin");
@@ -36,7 +40,13 @@ public class DataInitializer implements CommandLineRunner {
             admin.setOtpGeneratedAt(LocalDateTime.now());
             admin.setEnabled(true); // Admin is always enabled
 
-            userRepository.save(admin);
+            adminUser = userRepository.save(admin);
+        }
+
+        if (adminUser != null && adminRepository.findById(adminUser.getId()).isEmpty()) {
+            Admin adminProfile = new Admin();
+            adminProfile.setUser(adminUser);
+            adminRepository.save(adminProfile);
         }
 
         //  DOCTOR CREATION

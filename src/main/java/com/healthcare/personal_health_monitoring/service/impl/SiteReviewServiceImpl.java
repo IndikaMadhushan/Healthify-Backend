@@ -13,6 +13,7 @@ import com.healthcare.personal_health_monitoring.entity.User;
 import com.healthcare.personal_health_monitoring.repository.AdminRepository;
 import com.healthcare.personal_health_monitoring.repository.PatientRepository;
 import com.healthcare.personal_health_monitoring.repository.SiteReviewRepository;
+import com.healthcare.personal_health_monitoring.repository.UserRepository;
 import com.healthcare.personal_health_monitoring.service.SiteReviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -33,6 +34,7 @@ public class SiteReviewServiceImpl implements SiteReviewService {
     private final SiteReviewRepository siteReviewRepository;
     private final PatientRepository patientRepository;
     private final AdminRepository adminRepository;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -137,8 +139,7 @@ public class SiteReviewServiceImpl implements SiteReviewService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only pending site reviews can be moderated");
         }
 
-        Admin admin = adminRepository.findByUserEmail(adminEmail)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "Admin profile not found"));
+        Admin admin = resolveAdminProfile(adminEmail);
 
         siteReview.setStatus(targetStatus);
         siteReview.setReviewedAt(LocalDateTime.now());
@@ -150,6 +151,24 @@ public class SiteReviewServiceImpl implements SiteReviewService {
     private Patient getPatient(String patientEmail) {
         return patientRepository.findByUserEmail(patientEmail)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Patient profile not found"));
+    }
+
+    private Admin resolveAdminProfile(String adminEmail) {
+        Admin existingAdmin = adminRepository.findByUserEmail(adminEmail).orElse(null);
+        if (existingAdmin != null) {
+            return existingAdmin;
+        }
+
+        User user = userRepository.findByEmail(adminEmail)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "Admin user not found"));
+
+        if (user.getRole() != null && user.getRole().name().equals("ADMIN")) {
+            Admin admin = new Admin();
+            admin.setUser(user);
+            return adminRepository.save(admin);
+        }
+
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Admin profile not found");
     }
 
     private SiteReview findLatestReview(Long patientId) {
