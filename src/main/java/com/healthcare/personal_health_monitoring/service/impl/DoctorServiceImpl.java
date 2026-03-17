@@ -186,9 +186,11 @@ public class DoctorServiceImpl implements DoctorService {
                 doctor.getUser().getEmail(),
                 doctor.getNic(),
                 doctor.getSpecialization(),
+                doctor.getGender(),
                 doctor.getHospital(),
                 doctor.getLicenseNumber(),
                 doctor.getPhone(),
+                doctor.getDateOfBirth(),
                 doctor.getAge(),
                 doctor.getPhotoUrl()
         );
