@@ -70,11 +70,19 @@ public class LegacyProfileMigrationRunner implements CommandLineRunner {
                 FROM patients
                 """);
 
+        int migratedCount = 0;
+        int skippedCount = 0;
+
         for (Map<String, Object> row : rows) {
             long patientId = asLong(row.get("id"));
             NameUtil.NameParts parts = NameUtil.split((String) row.get("full_name"));
+            LocalDate dateOfBirth = resolveLegacyPatientDateOfBirth(patientId, row.get("date_of_birth"));
+            if (dateOfBirth == null) {
+                skippedCount++;
+                continue;
+            }
 
-            Integer age = resolveAge(row.get("age"), row.get("date_of_birth"));
+            Integer age = resolveAge(row.get("age"), dateOfBirth);
 
             jdbcTemplate.update("""
                             INSERT INTO patient_personal_details
@@ -108,8 +116,8 @@ public class LegacyProfileMigrationRunner implements CommandLineRunner {
                     row.get("marital_status"),
                     row.get("occupation"),
                     row.get("nationality"),
-                    row.get("date_of_birth"),
-                        age,
+                    dateOfBirth,
+                    age,
                     row.get("gender"),
                     row.get("height"),
                     row.get("weight"),
@@ -183,9 +191,15 @@ public class LegacyProfileMigrationRunner implements CommandLineRunner {
                     row.get("secondary_contact_phone"),
                     row.get("secondary_contact_relationship")
             );
+
+            migratedCount++;
         }
 
-        log.info("Migrated {} legacy patient records into normalized tables", rows.size());
+        log.info(
+                "Migrated {} legacy patient records into normalized tables, skipped {} rows with missing or invalid date_of_birth",
+                migratedCount,
+                skippedCount
+        );
     }
 
     private void normalizeLegacyProfileSchemas() {
@@ -424,6 +438,21 @@ public class LegacyProfileMigrationRunner implements CommandLineRunner {
                   AND TABLE_NAME = ?
                   AND COLUMN_NAME = ?
                 """, String.class, tableName, columnName);
+    }
+
+    private LocalDate resolveLegacyPatientDateOfBirth(long patientId, Object dobValue) {
+        try {
+            LocalDate dateOfBirth = asLocalDate(dobValue);
+            if (dateOfBirth != null) {
+                return dateOfBirth;
+            }
+        } catch (Exception ex) {
+            log.warn("Skipping legacy patient {} during profile migration because date_of_birth is invalid: {}", patientId, dobValue);
+            return null;
+        }
+
+        log.warn("Skipping legacy patient {} during profile migration because date_of_birth is null", patientId);
+        return null;
     }
 
     private long asLong(Object value) {
