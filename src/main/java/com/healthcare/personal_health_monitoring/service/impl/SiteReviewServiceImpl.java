@@ -164,7 +164,7 @@ public class SiteReviewServiceImpl implements SiteReviewService {
 
         if (user.getRole() != null && user.getRole().name().equals("ADMIN")) {
             Admin admin = new Admin();
-            admin.setUser(user);
+            admin.setUser(userRepository.getReferenceById(user.getId()));
             return adminRepository.save(admin);
         }
 
