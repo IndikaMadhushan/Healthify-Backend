@@ -25,5 +25,8 @@ public class Admin  {
         user.setPassword(password);
     }
 
+    public void setUser(User user) {
+        this.user = user;
+    }
 
 }
