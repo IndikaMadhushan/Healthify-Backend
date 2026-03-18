@@ -109,6 +109,17 @@ public class ClinicPageController {
     }
 
 
+    @GetMapping("/list/{clinicBookId}")
+    public ResponseEntity<StandardResponse> getClinicPagesByBook(
+            @PathVariable int clinicBookId) {
+
+        List<ClinicPageDTO> list = clinicPageService.getClinicPagesByBook(clinicBookId);
+
+        return new ResponseEntity<>(
+                new StandardResponse(200, "success", list),
+                HttpStatus.OK
+        );
+    }
 
 
 

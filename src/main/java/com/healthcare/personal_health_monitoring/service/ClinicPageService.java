@@ -25,4 +25,7 @@ public interface ClinicPageService {
     public List<ClinicPrescriptionCardDTO> getPagesByClinicBook(int clinicBookId);
 
     public List<ClinicPrescriptionCardListDTO> getClinicPagesByClinicBookId(int clinicBookId);
+
+
+    List<ClinicPageDTO> getClinicPagesByBook(int clinicBookId);
 }
