@@ -559,6 +559,47 @@ public class ClinicPageServiceimpl implements ClinicPageService {
         ).toList();
     }
 
+    @Override
+    public List<ClinicPageDTO> getClinicPagesByBook(int clinicBookId) {
+
+        List<ClinicPage> pages = clinicPageRepo.findByClinicBook_Id(clinicBookId);
+
+        List<ClinicPageDTO> result = new ArrayList<>();
+
+        for (ClinicPage clinicPage : pages) {
+
+            ClinicPageDTO dto = clinicPagemapper.map(clinicPage, ClinicPageDTO.class);
+
+            List<PatientHealthMetric> metrics =
+                    patientHealthMetricRepository.findByPageTypeAndPageId(
+                            PageType.CLINIC,
+                            clinicPage.getClinicPageId()
+                    );
+
+            dto.setPatientName(clinicPage.getClinicBook().getPatient().getFullName());
+            dto.setPatientGender(clinicPage.getClinicBook().getPatient().getGender());
+            dto.setPatientAge(clinicPage.getClinicBook().getPatient().getAge());
+            dto.setCreatedDoctor(clinicPage.getCreatedDoctor().getFullName());
+            dto.setSLMC(clinicPage.getCreatedDoctor().getLicenseNumber());
+
+            HealthMetricRequestSetDTO metricDTO = new HealthMetricRequestSetDTO();
+
+            metricDTO.setMetrics(
+                    metrics.stream().collect(Collectors.toMap(
+                            PatientHealthMetric::getMetricType,
+                            PatientHealthMetric::getValue,
+                            (oldVal, newVal) -> newVal
+                    ))
+            );
+
+            dto.setHealthMetricRequestSetDTO(metricDTO);
+
+            result.add(dto);
+        }
+
+        return result;
+    }
+
 
 
 

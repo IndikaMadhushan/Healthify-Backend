@@ -54,7 +54,10 @@ public class DoctorNoteServiceImpl implements DoctorNoteService {
                         notes.add(DoctorNoteMapper.fromConsultPage(page))
                 );
 
-        return notes;
+        return notes.stream()
+                .filter(n -> n != null)
+                .filter(n -> n.getDoctorNote() != null && !n.getDoctorNote().isBlank())
+                .toList();
     }
 
 
