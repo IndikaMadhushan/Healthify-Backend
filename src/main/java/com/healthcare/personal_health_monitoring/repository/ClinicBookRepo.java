@@ -2,6 +2,7 @@ package com.healthcare.personal_health_monitoring.repository;
 
 
 import com.healthcare.personal_health_monitoring.entity.ClinicBook;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.stereotype.Repository;
@@ -13,5 +14,9 @@ import java.util.Optional;
 @EnableJpaRepositories
 public interface ClinicBookRepo extends JpaRepository<ClinicBook,Integer> {
 
+    @EntityGraph(attributePaths = {"doctor", "doctor.user"})
     List<ClinicBook> findAllByPatient_Id(long patientId);
+
+    @EntityGraph(attributePaths = {"doctor", "doctor.user", "patient", "patient.user"})
+    Optional<ClinicBook> findOneById(Integer id);
 }

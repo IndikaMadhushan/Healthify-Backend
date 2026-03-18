@@ -150,7 +150,7 @@ public class ClinicBookServiceimpl implements ClinicBookService {
                 clinicBookRepo.findAllByPatient_Id(patientId);
 
         if (clinicBooks.isEmpty()) {
-            throw new RuntimeException("No clinic books found for patient " + patientId);
+            return List.of();
         }
 
         return clinicBooks.stream().map(cb -> {
@@ -185,7 +185,7 @@ public class ClinicBookServiceimpl implements ClinicBookService {
                 clinicBookRepo.findAllByPatient_Id(patientId);
 
         if (clinicBooks.isEmpty()) {
-            throw new RuntimeException("No clinic books found for patient " + patientId);
+            return List.of();
         }
 
         return clinicBooks.stream().map(cb -> {
@@ -246,9 +246,9 @@ public class ClinicBookServiceimpl implements ClinicBookService {
     @Override
     public ClinicBookViewDTO getClinicBookById(Integer clinicBookId) {
 
-        ClinicBook cb = clinicBookRepo.findById(clinicBookId)
+        ClinicBook cb = clinicBookRepo.findOneById(clinicBookId)
                 .orElseThrow(() ->
-                        new RuntimeException("Clinic book not found with id " + clinicBookId)
+                        new EntityNotFoundException("Clinic book not found with id " + clinicBookId)
                 );
 
         Doctor doctor = cb.getDoctor();
@@ -272,15 +272,15 @@ public class ClinicBookServiceimpl implements ClinicBookService {
     @Override
     public ClinicBookPatientDetailsCardDTO getPatientData(Integer clinicBookId) {
 
-        ClinicBook cb = clinicBookRepo.findById(clinicBookId)
+        ClinicBook cb = clinicBookRepo.findOneById(clinicBookId)
                 .orElseThrow(() ->
-                        new RuntimeException("Clinic book not found with id " + clinicBookId)
+                        new EntityNotFoundException("Clinic book not found with id " + clinicBookId)
                 );
 
         Patient patient = cb.getPatient();
 
         if (patient == null) {
-            throw new RuntimeException("Patient not linked to clinic book");
+            throw new EntityNotFoundException("Patient not linked to clinic book");
         }
 
         return new ClinicBookPatientDetailsCardDTO(

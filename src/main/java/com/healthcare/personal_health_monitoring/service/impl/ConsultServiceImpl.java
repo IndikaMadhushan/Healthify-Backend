@@ -46,9 +46,7 @@ public class ConsultServiceImpl implements ConsultService {
                 consultRepo.findAllByPatient_Id(patientId);
 
         if (consultPages.isEmpty()) {
-            throw new RuntimeException(
-                    "No consult pages found for patient " + patientId
-            );
+            return List.of();
         }
 
         return consultPages.stream()
@@ -71,9 +69,9 @@ public class ConsultServiceImpl implements ConsultService {
     public ConsultPageResponseDTO getConsultPageFullData(int consultId) {
 
         // 1️⃣ Get consult page
-        ConsultPage consultPage = consultRepo.findById(consultId)
+        ConsultPage consultPage = consultRepo.findOneByConsultId(consultId)
                 .orElseThrow(() ->
-                        new RuntimeException("Consult page not found"));
+                        new ResponseStatusException(HttpStatus.NOT_FOUND, "Consult page not found"));
 
         ConsultPageResponseDTO dto = new ConsultPageResponseDTO();
 

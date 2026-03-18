@@ -26,6 +26,7 @@ public class LegacyProfileMigrationRunner implements CommandLineRunner {
     @Override
     public void run(String... args) {
         migratePatientHealthMetricSchema();
+        normalizeLegacyProfileSchemas();
         migratePatientData();
         migrateDoctorData();
         migratePendingRegistrationNames();
@@ -69,11 +70,19 @@ public class LegacyProfileMigrationRunner implements CommandLineRunner {
                 FROM patients
                 """);
 
+        int migratedCount = 0;
+        int skippedCount = 0;
+
         for (Map<String, Object> row : rows) {
             long patientId = asLong(row.get("id"));
             NameUtil.NameParts parts = NameUtil.split((String) row.get("full_name"));
+            LocalDate dateOfBirth = resolveLegacyPatientDateOfBirth(patientId, row.get("date_of_birth"));
+            if (dateOfBirth == null) {
+                skippedCount++;
+                continue;
+            }
 
-            Integer age = resolveAge(row.get("age"), row.get("date_of_birth"));
+            Integer age = resolveAge(row.get("age"), dateOfBirth);
 
             jdbcTemplate.update("""
                             INSERT INTO patient_personal_details
@@ -107,8 +116,8 @@ public class LegacyProfileMigrationRunner implements CommandLineRunner {
                     row.get("marital_status"),
                     row.get("occupation"),
                     row.get("nationality"),
-                    row.get("date_of_birth"),
-                        age,
+                    dateOfBirth,
+                    age,
                     row.get("gender"),
                     row.get("height"),
                     row.get("weight"),
@@ -182,9 +191,66 @@ public class LegacyProfileMigrationRunner implements CommandLineRunner {
                     row.get("secondary_contact_phone"),
                     row.get("secondary_contact_relationship")
             );
+
+            migratedCount++;
         }
 
-        log.info("Migrated {} legacy patient records into normalized tables", rows.size());
+        log.info(
+                "Migrated {} legacy patient records into normalized tables, skipped {} rows with missing or invalid date_of_birth",
+                migratedCount,
+                skippedCount
+        );
+    }
+
+    private void normalizeLegacyProfileSchemas() {
+        relaxLegacyColumns("patients", List.of(
+                "nic",
+                "phone",
+                "marital_status",
+                "occupation",
+                "nationality",
+                "date_of_birth",
+                "age",
+                "gender",
+                "height",
+                "weight",
+                "blood_type",
+                "photo_url",
+                "postal_code",
+                "district",
+                "address",
+                "father_name",
+                "father_dob",
+                "father_alive",
+                "father_cause_of_death",
+                "father_diseases",
+                "mother_name",
+                "mother_dob",
+                "mother_alive",
+                "mother_cause_of_death",
+                "mother_diseases",
+                "primary_contact_name",
+                "primary_contact_phone",
+                "primary_contact_relationship",
+                "secondary_contact_name",
+                "secondary_contact_phone",
+                "secondary_contact_relationship"
+        ));
+
+        relaxLegacyColumns("doctors", List.of(
+                "nic",
+                "postal_code",
+                "verification_doc_url",
+                "phone",
+                "district",
+                "province",
+                "country",
+                "specialization",
+                "date_of_birth",
+                "age",
+                "photo_url",
+                "joined_date"
+        ));
     }
 
     private void migrateDoctorData() {
@@ -302,6 +368,57 @@ public class LegacyProfileMigrationRunner implements CommandLineRunner {
         log.info("Migrated legacy pending registration names");
     }
 
+    private void relaxLegacyColumns(String tableName, List<String> columns) {
+        int relaxedCount = 0;
+
+        for (String columnName : columns) {
+            if (!shouldRelaxColumn(tableName, columnName)) {
+                continue;
+            }
+
+            String columnType = getColumnType(tableName, columnName);
+            jdbcTemplate.execute(String.format(
+                    "ALTER TABLE `%s` MODIFY COLUMN `%s` %s NULL",
+                    tableName,
+                    columnName,
+                    columnType
+            ));
+            relaxedCount++;
+        }
+
+        if (relaxedCount > 0) {
+            log.info("Relaxed {} legacy columns on {}", relaxedCount, tableName);
+        }
+    }
+
+    private boolean shouldRelaxColumn(String tableName, String columnName) {
+        if (!columnExists(tableName, columnName)) {
+            return false;
+        }
+
+        Boolean nullable = jdbcTemplate.queryForObject("""
+                SELECT CASE WHEN IS_NULLABLE = 'YES' THEN TRUE ELSE FALSE END
+                FROM INFORMATION_SCHEMA.COLUMNS
+                WHERE TABLE_SCHEMA = DATABASE()
+                  AND TABLE_NAME = ?
+                  AND COLUMN_NAME = ?
+                """, Boolean.class, tableName, columnName);
+
+        if (Boolean.TRUE.equals(nullable)) {
+            return false;
+        }
+
+        String defaultValue = jdbcTemplate.queryForObject("""
+                SELECT COLUMN_DEFAULT
+                FROM INFORMATION_SCHEMA.COLUMNS
+                WHERE TABLE_SCHEMA = DATABASE()
+                  AND TABLE_NAME = ?
+                  AND COLUMN_NAME = ?
+                """, String.class, tableName, columnName);
+
+        return defaultValue == null;
+    }
+
     private boolean columnExists(String tableName, String columnName) {
         Integer matches = jdbcTemplate.queryForObject("""
                 SELECT COUNT(*)
@@ -321,6 +438,21 @@ public class LegacyProfileMigrationRunner implements CommandLineRunner {
                   AND TABLE_NAME = ?
                   AND COLUMN_NAME = ?
                 """, String.class, tableName, columnName);
+    }
+
+    private LocalDate resolveLegacyPatientDateOfBirth(long patientId, Object dobValue) {
+        try {
+            LocalDate dateOfBirth = asLocalDate(dobValue);
+            if (dateOfBirth != null) {
+                return dateOfBirth;
+            }
+        } catch (Exception ex) {
+            log.warn("Skipping legacy patient {} during profile migration because date_of_birth is invalid: {}", patientId, dobValue);
+            return null;
+        }
+
+        log.warn("Skipping legacy patient {} during profile migration because date_of_birth is null", patientId);
+        return null;
     }
 
     private long asLong(Object value) {

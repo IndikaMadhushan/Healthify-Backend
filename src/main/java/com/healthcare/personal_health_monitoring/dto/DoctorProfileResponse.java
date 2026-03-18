@@ -12,6 +12,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class DoctorProfileResponse {
 
+    private Long id;
     private String doctorId;
     private String firstName;
     private String secondName;

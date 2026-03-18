@@ -19,6 +19,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.time.Period;
@@ -117,6 +118,10 @@ public class DoctorServiceImpl implements DoctorService {
         doctor.setPhone(request.getPhone());
         doctor.setHospital(request.getHospital());
         doctor.setSpecialization(request.getSpecialization());
+        if (request.getGender() != null && !request.getGender().isBlank()) {
+            doctor.setGender(request.getGender().trim());
+            doctor.setLegacyGender(request.getGender().trim());
+        }
         if(request.getDateOfBirth() != null) {
             doctor.setDateOfBirth(request.getDateOfBirth());
             doctor.setAge(AgeUtil.calculateAge(request.getDateOfBirth()));
@@ -127,6 +132,21 @@ public class DoctorServiceImpl implements DoctorService {
 
         //return updated profile
         return toProfileResponse(saved);
+    }
+
+    @Override
+    public String uploadMyProfileImage(MultipartFile image) {
+        String email = SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getName();
+
+        Doctor doctor = doctorRepository.findByUserEmail(email)
+                .orElseThrow(() -> new RuntimeException("Doctor not found"));
+
+        String imageUrl = fileUploadService.uploadPublicProfileImage(image, "doctors/" + doctor.getId());
+        doctor.setPhotoUrl(imageUrl);
+        doctorRepository.save(doctor);
+        return imageUrl;
     }
 
     @Override
@@ -179,6 +199,7 @@ public class DoctorServiceImpl implements DoctorService {
 
     private DoctorProfileResponse toProfileResponse(Doctor doctor) {
         return new DoctorProfileResponse(
+                doctor.getId(),
                 doctor.getDoctorId(),
                 doctor.getFirstName(),
                 doctor.getSecondName(),

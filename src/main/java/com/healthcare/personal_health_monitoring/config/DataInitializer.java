@@ -1,6 +1,7 @@
 package com.healthcare.personal_health_monitoring.config;
 
 import com.healthcare.personal_health_monitoring.entity.*;
+import com.healthcare.personal_health_monitoring.repository.AdminRepository;
 import com.healthcare.personal_health_monitoring.repository.DoctorRepository;
 import com.healthcare.personal_health_monitoring.repository.IdSequenceRepository;
 import com.healthcare.personal_health_monitoring.repository.UserRepository;
@@ -9,6 +10,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
@@ -17,14 +19,18 @@ import java.time.LocalDateTime;
 public class DataInitializer implements CommandLineRunner {
 
     private final UserRepository userRepository;
+    private final AdminRepository adminRepository;
     private final PasswordEncoder passwordEncoder;
     private final DoctorRepository doctorRepository;
 
     @Override
+    @Transactional
     public void run(String... args) {
 
         //ADMIN CREATION
-        if (userRepository.findByEmail("admin@healthcare.com").isEmpty()) {
+        User adminUser = userRepository.findByEmail("admin@healthcare.com").orElse(null);
+
+        if (adminUser == null) {
 
             User admin = new User();
             //admin.setFullName("System Admin");
@@ -36,7 +42,13 @@ public class DataInitializer implements CommandLineRunner {
             admin.setOtpGeneratedAt(LocalDateTime.now());
             admin.setEnabled(true); // Admin is always enabled
 
-            userRepository.save(admin);
+            adminUser = userRepository.save(admin);
+        }
+
+        if (adminUser != null && adminRepository.findById(adminUser.getId()).isEmpty()) {
+            Admin adminProfile = new Admin();
+            adminProfile.setUser(userRepository.findById(adminUser.getId()).orElseThrow());
+            adminRepository.save(adminProfile);
         }
 
         //  DOCTOR CREATION
