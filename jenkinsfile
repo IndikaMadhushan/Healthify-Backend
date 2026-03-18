@@ -1,4 +1,3 @@
-
 pipeline {
     agent any
 
@@ -45,12 +44,17 @@ pipeline {
                 withCredentials([sshUserPrivateKey(credentialsId: 'ec2_key', keyFileVariable: 'SSH_KEY_PATH')]) {
                     sh '''
                         echo "Deploying to AWS EC2..."
+
                         scp -i "$SSH_KEY_PATH" -o StrictHostKeyChecking=no docker-compose.yml ${VM_USER}@${VM_IP}:~/docker-compose.yml
+
                         ssh -i "$SSH_KEY_PATH" -o StrictHostKeyChecking=no ${VM_USER}@${VM_IP} "
                             docker-compose -f ~/docker-compose.yml down || true
                             docker pull indikamadhushan/healthy_backend:latest
                             docker-compose -f ~/docker-compose.yml up -d --force-recreate
+                            docker ps
+                            docker logs --tail=100 healthy_backend || true
                         "
+
                         echo "Deployment complete"
                     '''
                 }
