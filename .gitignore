@@ -38,3 +38,6 @@ build/
 
 # Ignore Spring Boot configuration
 src/main/resources/application.properties
+
+# Ignore environment variable files
+.env

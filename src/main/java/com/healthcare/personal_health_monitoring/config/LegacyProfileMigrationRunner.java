@@ -15,6 +15,7 @@ import java.time.Period;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -55,20 +56,22 @@ public class LegacyProfileMigrationRunner implements CommandLineRunner {
     }
 
     private void migratePatientData() {
-        if (!columnExists("patients", "full_name")) {
+        List<Map<String, Object>> rows = queryLegacyRows(
+                "patients",
+                List.of(
+                        "id", "full_name", "nic", "phone", "marital_status", "occupation", "nationality",
+                        "date_of_birth", "age", "gender", "height", "weight", "blood_type", "photo_url",
+                        "postal_code", "district", "address",
+                        "father_name", "father_dob", "father_alive", "father_cause_of_death", "father_diseases",
+                        "mother_name", "mother_dob", "mother_alive", "mother_cause_of_death", "mother_diseases",
+                        "primary_contact_name", "primary_contact_phone", "primary_contact_relationship",
+                        "secondary_contact_name", "secondary_contact_phone", "secondary_contact_relationship"
+                ),
+                List.of("id", "full_name")
+        );
+        if (rows.isEmpty()) {
             return;
         }
-
-        List<Map<String, Object>> rows = jdbcTemplate.queryForList("""
-                SELECT id, full_name, nic, phone, marital_status, occupation, nationality,
-                       date_of_birth, age, gender, height, weight, blood_type, photo_url,
-                       postal_code, district, address,
-                       father_name, father_dob, father_alive, father_cause_of_death, father_diseases,
-                       mother_name, mother_dob, mother_alive, mother_cause_of_death, mother_diseases,
-                       primary_contact_name, primary_contact_phone, primary_contact_relationship,
-                       secondary_contact_name, secondary_contact_phone, secondary_contact_relationship
-                FROM patients
-                """);
 
         int migratedCount = 0;
         int skippedCount = 0;
@@ -254,16 +257,18 @@ public class LegacyProfileMigrationRunner implements CommandLineRunner {
     }
 
     private void migrateDoctorData() {
-        if (!columnExists("doctors", "full_name")) {
+        List<Map<String, Object>> rows = queryLegacyRows(
+                "doctors",
+                List.of(
+                        "id", "full_name", "gender", "hospital", "nic", "postal_code", "verification_doc_url",
+                        "phone", "district", "province", "country", "specialization", "license_number",
+                        "date_of_birth", "age", "photo_url", "joined_date"
+                ),
+                List.of("id", "full_name")
+        );
+        if (rows.isEmpty()) {
             return;
         }
-
-        List<Map<String, Object>> rows = jdbcTemplate.queryForList("""
-                SELECT id, full_name, gender, hospital, nic, postal_code, verification_doc_url,
-                       phone, district, province, country, specialization, license_number,
-                       date_of_birth, age, photo_url, joined_date
-                FROM doctors
-                """);
 
         for (Map<String, Object> row : rows) {
             long doctorId = asLong(row.get("id"));
@@ -336,14 +341,14 @@ public class LegacyProfileMigrationRunner implements CommandLineRunner {
     }
 
     private void migratePendingRegistrationNames() {
-        if (!columnExists("pending_registrations", "full_name")) {
+        List<Map<String, Object>> rows = queryLegacyRows(
+                "pending_registrations",
+                List.of("id", "full_name", "first_name", "second_name", "last_name"),
+                List.of("id", "full_name")
+        );
+        if (rows.isEmpty()) {
             return;
         }
-
-        List<Map<String, Object>> rows = jdbcTemplate.queryForList("""
-                SELECT id, full_name, first_name, second_name, last_name
-                FROM pending_registrations
-                """);
 
         for (Map<String, Object> row : rows) {
             String firstName = (String) row.get("first_name");
@@ -389,6 +394,26 @@ public class LegacyProfileMigrationRunner implements CommandLineRunner {
         if (relaxedCount > 0) {
             log.info("Relaxed {} legacy columns on {}", relaxedCount, tableName);
         }
+    }
+
+    private List<Map<String, Object>> queryLegacyRows(String tableName, List<String> requestedColumns, List<String> requiredColumns) {
+        List<String> existingColumns = requestedColumns.stream()
+                .filter(columnName -> columnExists(tableName, columnName))
+                .toList();
+
+        if (!existingColumns.containsAll(requiredColumns)) {
+            log.info("Skipping legacy migration for {} because required columns are missing. Required={}, existing={}",
+                    tableName,
+                    requiredColumns,
+                    existingColumns);
+            return List.of();
+        }
+
+        String selectColumns = existingColumns.stream()
+                .map(columnName -> "`" + columnName + "`")
+                .collect(Collectors.joining(", "));
+
+        return jdbcTemplate.queryForList("SELECT " + selectColumns + " FROM `" + tableName + "`");
     }
 
     private boolean shouldRelaxColumn(String tableName, String columnName) {
