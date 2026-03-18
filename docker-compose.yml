@@ -23,11 +23,9 @@ services:
       - mysql
     ports:
       - "8083:8083"
+    env_file:
+      - /etc/healthify/app.env
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/healthy?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
-      SPRING_DATASOURCE_USERNAME: healthy_user
-      SPRING_DATASOURCE_PASSWORD: healthy_pass
-      SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
       SERVER_PORT: 8083
 
 volumes:
