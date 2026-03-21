@@ -1,6 +1,8 @@
 package com.healthcare.personal_health_monitoring.entity;
 
+import com.healthcare.personal_health_monitoring.entity.converter.EncryptedStringConverter;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
@@ -28,17 +30,26 @@ public class PatientLifestyleInfo {
     @JoinColumn(name = "patient_id")
     private Patient patient;
 
+    @Convert(converter = EncryptedStringConverter.class)
     private String smokingStatus;
+    @Convert(converter = EncryptedStringConverter.class)
     private String smokingFrequency;
+    @Convert(converter = EncryptedStringConverter.class)
     private String alcoholStatus;
+    @Convert(converter = EncryptedStringConverter.class)
     private String alcoholFrequency;
+    @Convert(converter = EncryptedStringConverter.class)
     private String drugUseStatus;
+    @Convert(converter = EncryptedStringConverter.class)
     private String drugUseFrequency;
+    @Convert(converter = EncryptedStringConverter.class)
     private String stressLevel;
 
-    @Column(length = 1000)
+    @Convert(converter = EncryptedStringConverter.class)
+    @Column(length = 2048)
     private String foodAllergies;
 
-    @Column(length = 1000)
+    @Convert(converter = EncryptedStringConverter.class)
+    @Column(length = 2048)
     private String drugAllergies;
 }

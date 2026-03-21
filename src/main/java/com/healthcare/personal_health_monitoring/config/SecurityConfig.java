@@ -37,6 +37,9 @@ public class SecurityConfig {
                                 .authorizeHttpRequests(auth -> auth
                                                 .requestMatchers(HttpMethod.GET, "/api/site-reviews/public").permitAll()
                                                 .requestMatchers(HttpMethod.POST, "/api/contact-us").permitAll()
+
+                                                .requestMatchers("/api/chat/**").hasAnyRole("PATIENT", "DOCTOR")
+
                                                 .requestMatchers("/api/admin/site-reviews/**").hasRole("ADMIN")
                                                 .requestMatchers(HttpMethod.GET, "/api/lab-reports/patient/**")
                                                 .hasRole("DOCTOR")

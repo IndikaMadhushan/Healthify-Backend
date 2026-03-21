@@ -1,6 +1,8 @@
 package com.healthcare.personal_health_monitoring.entity;
 
+import com.healthcare.personal_health_monitoring.entity.converter.EncryptedStringConverter;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
@@ -28,12 +30,15 @@ public class PatientMedicalInfoProfile {
     @JoinColumn(name = "patient_id")
     private Patient patient;
 
-    @Column(length = 1000)
+    @Convert(converter = EncryptedStringConverter.class)
+    @Column(length = 2048)
     private String otherChronic;
 
-    @Column(length = 1000)
+    @Convert(converter = EncryptedStringConverter.class)
+    @Column(length = 2048)
     private String cancerChronic;
 
-    @Column(length = 1000)
+    @Convert(converter = EncryptedStringConverter.class)
+    @Column(length = 2048)
     private String otherVaccine;
 }

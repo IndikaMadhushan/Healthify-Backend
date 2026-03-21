@@ -1,10 +1,10 @@
 package com.healthcare.personal_health_monitoring.controller;
 
 import com.healthcare.personal_health_monitoring.dto.ClinicPageDTO;
-import com.healthcare.personal_health_monitoring.dto.ClinicPageViewDTO;
+// import com.healthcare.personal_health_monitoring.dto.ClinicPageViewDTO;
 import com.healthcare.personal_health_monitoring.dto.ClinicPrescriptionCardDTO;
 import com.healthcare.personal_health_monitoring.dto.ClinicPrescriptionCardListDTO;
-import com.healthcare.personal_health_monitoring.entity.ClinicPage;
+// import com.healthcare.personal_health_monitoring.entity.ClinicPage;
 import com.healthcare.personal_health_monitoring.security.CustomUserDetails;
 import com.healthcare.personal_health_monitoring.service.ClinicPageService;
 import com.healthcare.personal_health_monitoring.util.StandardResponse;
@@ -24,10 +24,11 @@ public class ClinicPageController {
     @Autowired
     private ClinicPageService clinicPageService;
 
-    //create a new clinic page
+    // create a new clinic page
     @PostMapping(path = "/{clinic_book_id}")
     @PreAuthorize("hasRole('DOCTOR')")
-    public ResponseEntity<StandardResponse> saveClinicPage(@PathVariable(value = "clinic_book_id") int clinicBookId, @RequestBody ClinicPageDTO clinicPageDTO,@AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<StandardResponse> saveClinicPage(@PathVariable(value = "clinic_book_id") int clinicBookId,
+            @RequestBody ClinicPageDTO clinicPageDTO, @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long doctor_id = userDetails.getUser().getId();
         String message = clinicPageService.saveClinicPage(clinicBookId, clinicPageDTO, doctor_id);
 
@@ -39,29 +40,27 @@ public class ClinicPageController {
 
     }
 
-
     @PutMapping("/{clinicPageId}")
     @PreAuthorize("hasRole('DOCTOR')")
-    public ResponseEntity<String> updateClinicPage(@PathVariable (value = "clinicPageId") int clinicPageId, @RequestBody ClinicPageDTO clinicPageDTO,@AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<String> updateClinicPage(@PathVariable(value = "clinicPageId") int clinicPageId,
+            @RequestBody ClinicPageDTO clinicPageDTO, @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long doctor_id = userDetails.getUser().getId();
         return ResponseEntity.ok(
-                clinicPageService.updateClinicPage(clinicPageId, clinicPageDTO, doctor_id)
-        );
+                clinicPageService.updateClinicPage(clinicPageId, clinicPageDTO, doctor_id));
     }
-
 
     @DeleteMapping(path = "/{clinicPageId}")
     @PreAuthorize("hasRole('DOCTOR')")
-    public ResponseEntity<StandardResponse> deleteClinicPage(@PathVariable int clinicPageId,@AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<StandardResponse> deleteClinicPage(@PathVariable int clinicPageId,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long doctorId = userDetails.getUser().getId();
         String message = clinicPageService.deleteClinicPage(clinicPageId, doctorId);
         return new ResponseEntity<StandardResponse>(
                 new StandardResponse(204, "deleted", message),
-                HttpStatus.NO_CONTENT
-        );
+                HttpStatus.NO_CONTENT);
     }
 
-    //get specific clinic page data for pdf prescription
+    // get specific clinic page data for pdf prescription
     @GetMapping(path = "/{clinicPageId}")
     public ResponseEntity<StandardResponse> getClinicPageData(@PathVariable int clinicPageId) {
         ClinicPageDTO message = clinicPageService.getClinicPageData(clinicPageId);
@@ -74,21 +73,20 @@ public class ClinicPageController {
 
     @PostMapping("/request-edit/{clinicPageId}")
     @PreAuthorize("hasRole('DOCTOR')")
-    public ResponseEntity<String> requestEditApproval(@PathVariable int clinicPageId,@AuthenticationPrincipal CustomUserDetails userDetails)
+    public ResponseEntity<String> requestEditApproval(@PathVariable int clinicPageId,
+            @AuthenticationPrincipal CustomUserDetails userDetails)
 
     {
         Long doctor_id = userDetails.getUser().getId();
-        clinicPageService.requestEditApproval(clinicPageId,doctor_id);
+        clinicPageService.requestEditApproval(clinicPageId, doctor_id);
         return ResponseEntity.ok("APPROVAL_EMAIL_SENT");
     }
 
-    @GetMapping ("/approve-edit/{clinicPageId}")
+    @GetMapping("/approve-edit/{clinicPageId}")
     public ResponseEntity<String> approveEdit(@PathVariable int clinicPageId) {
         return ResponseEntity.ok(
-                clinicPageService.approveEditByPatient(clinicPageId)
-        );
+                clinicPageService.approveEditByPatient(clinicPageId));
     }
-
 
     @GetMapping("/clinic-data/{clinicBookId}/pages")
     public List<ClinicPrescriptionCardDTO> getClinicPages(
@@ -97,17 +95,13 @@ public class ClinicPageController {
         return clinicPageService.getPagesByClinicBook(clinicBookId);
     }
 
-
-    //right component list all clinic pages
+    // right component list all clinic pages
     @GetMapping("/by-clinic-book/{clinicBookId}")
     public ResponseEntity<List<ClinicPrescriptionCardListDTO>> getPages(
-            @PathVariable int clinicBookId
-    ) {
+            @PathVariable int clinicBookId) {
         return ResponseEntity.ok(
-                clinicPageService.getClinicPagesByClinicBookId(clinicBookId)
-        );
+                clinicPageService.getClinicPagesByClinicBookId(clinicBookId));
     }
-
 
     @GetMapping("/list/{clinicBookId}")
     public ResponseEntity<StandardResponse> getClinicPagesByBook(
@@ -117,10 +111,7 @@ public class ClinicPageController {
 
         return new ResponseEntity<>(
                 new StandardResponse(200, "success", list),
-                HttpStatus.OK
-        );
+                HttpStatus.OK);
     }
-
-
 
 }
