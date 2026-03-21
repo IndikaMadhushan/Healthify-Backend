@@ -1,6 +1,5 @@
 package com.healthcare.personal_health_monitoring.controller;
 
-
 import com.healthcare.personal_health_monitoring.dto.ClinicBookPatientDetailsCardDTO;
 import com.healthcare.personal_health_monitoring.dto.ClinicBookRequestDTO;
 import com.healthcare.personal_health_monitoring.dto.ClinicBookViewDTO;
@@ -12,7 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
+// import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,9 +23,8 @@ public class ClinicBookController {
     @Autowired
     private ClinicBookService clinicBookService;
 
-
-    //connected
-    //create new clicnic boojk(only doctors)
+    // connected
+    // create new clicnic boojk(only doctors)
     @PostMapping(path = "create/{patient_id}")
     @PreAuthorize("hasRole('DOCTOR')")
     public ResponseEntity<StandardResponse> createClinicBook(
@@ -44,7 +42,7 @@ public class ClinicBookController {
 
     }
 
-    //when doctor click edit but to edit reason or access
+    // when doctor click edit but to edit reason or access
     @GetMapping(path = "/{clinicbook_id}")
     @PreAuthorize("hasRole('DOCTOR')")
     public ResponseEntity<StandardResponse> getReasonAndReason(@PathVariable(value = "clinicbook_id") int id) {
@@ -58,16 +56,16 @@ public class ClinicBookController {
 
     }
 
-
-    //EDIT CLINIC BOOK CREATED REASON OR ACCESS BY DOCTOR.IF CREATED DOCTOE GIVE ALLOW ACCESS, ANY DOCTOR CAN EDIT.OTHERWISE CANNOT
+    // EDIT CLINIC BOOK CREATED REASON OR ACCESS BY DOCTOR.IF CREATED DOCTOE GIVE
+    // ALLOW ACCESS, ANY DOCTOR CAN EDIT.OTHERWISE CANNOT
     @PutMapping(path = "/{clinicbook_id}")
     @PreAuthorize("hasRole('DOCTOR')")
-    public ResponseEntity<StandardResponse> updateReason(@RequestBody ClinicBookRequestDTO clinicBookRequestDTO, @PathVariable(value = "clinicbook_id") int bookid,@AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<StandardResponse> updateReason(@RequestBody ClinicBookRequestDTO clinicBookRequestDTO,
+            @PathVariable(value = "clinicbook_id") int bookid, @AuthenticationPrincipal CustomUserDetails userDetails) {
 
         Long doctorId = userDetails.getUser().getId();
 
-
-        String message = clinicBookService.updateReason(clinicBookRequestDTO, bookid,doctorId );
+        String message = clinicBookService.updateReason(clinicBookRequestDTO, bookid, doctorId);
 
         return new ResponseEntity<StandardResponse>(
                 new StandardResponse(200, "ok", message),
@@ -79,9 +77,10 @@ public class ClinicBookController {
 
     @DeleteMapping(path = "/{clinicbook_id}")
     @PreAuthorize("hasRole('DOCTOR')")
-    public ResponseEntity<StandardResponse> deleteClinicBook(@PathVariable(value = "clinicbook_id") int bookid,@AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<StandardResponse> deleteClinicBook(@PathVariable(value = "clinicbook_id") int bookid,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long doctorId = userDetails.getUser().getId();
-        String message = clinicBookService.deleteClinicBook(bookid,doctorId);
+        String message = clinicBookService.deleteClinicBook(bookid, doctorId);
 
         return new ResponseEntity<StandardResponse>(
                 new StandardResponse(200, "OK", message),
@@ -91,29 +90,30 @@ public class ClinicBookController {
 
     }
 
-    //get patient all clinic book
+    // get patient all clinic book
 
-//    @GetMapping(path="/{patient_id}")
-//    public ResponseEntity<StandardResponse> getPatientClinicBooks(@PathVariable(value = "patient_id") int id) {
-//        ClinicBookRequestDTO message = clinicBookService.getReasonAndReason(id);
-//
-//        return new ResponseEntity<StandardResponse>(
-//                new StandardResponse(200, "OK", message),
-//                HttpStatus.OK
-//
-//        );
-//
-//    }
+    // @GetMapping(path="/{patient_id}")
+    // public ResponseEntity<StandardResponse>
+    // getPatientClinicBooks(@PathVariable(value = "patient_id") int id) {
+    // ClinicBookRequestDTO message = clinicBookService.getReasonAndReason(id);
+    //
+    // return new ResponseEntity<StandardResponse>(
+    // new StandardResponse(200, "OK", message),
+    // HttpStatus.OK
+    //
+    // );
+    //
+    // }
 
-    //doctor
+    // doctor
     @GetMapping("/patient/{patientId}")
     @PreAuthorize("hasRole('DOCTOR')")
     public List<ClinicBookViewDTO> getClinicBook(@PathVariable long patientId) {
-         return clinicBookService.getClinicBookDetails(patientId);
+        return clinicBookService.getClinicBookDetails(patientId);
     }
 
     @GetMapping("/patient-clinic")
-//    @PreAuthorize("hasRole('PATIENT')")
+    // @PreAuthorize("hasRole('PATIENT')")
     public List<ClinicBookViewDTO> getClinicBook(@AuthenticationPrincipal CustomUserDetails userDetails) {
         Long patientId = userDetails.getUser().getId();
         return clinicBookService.getPatientClinicBookDetails(patientId);
@@ -121,20 +121,15 @@ public class ClinicBookController {
 
     @GetMapping("clinic_data/{clinicBookId}")
     public ResponseEntity<ClinicBookViewDTO> getClinicBookById(
-            @PathVariable Integer clinicBookId
-    ) {
+            @PathVariable Integer clinicBookId) {
         return ResponseEntity.ok(
-                clinicBookService.getClinicBookById(clinicBookId)
-        );
+                clinicBookService.getClinicBookById(clinicBookId));
     }
-
 
     @GetMapping("/patientData/{clinicBookId}")
     public ResponseEntity<ClinicBookPatientDetailsCardDTO> getPatientData(
-            @PathVariable Integer clinicBookId
-    ) {
+            @PathVariable Integer clinicBookId) {
         return ResponseEntity.ok(
-                clinicBookService.getPatientData(clinicBookId)
-        );
+                clinicBookService.getPatientData(clinicBookId));
     }
 }

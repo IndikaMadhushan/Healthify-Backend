@@ -1,6 +1,8 @@
 package com.healthcare.personal_health_monitoring.entity;
 
+import com.healthcare.personal_health_monitoring.entity.converter.EncryptedStringConverter;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -28,6 +30,7 @@ public class PatientParentChronicCondition {
     @JoinColumn(name = "patient_id", nullable = false)
     private Patient patient;
 
+    @Convert(converter = EncryptedStringConverter.class)
     @Column(name = "condition_name", nullable = false, length = 255)
     private String conditionName;
 }

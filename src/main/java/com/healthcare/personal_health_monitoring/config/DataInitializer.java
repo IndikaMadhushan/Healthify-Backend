@@ -2,7 +2,7 @@ package com.healthcare.personal_health_monitoring.config;
 
 import com.healthcare.personal_health_monitoring.entity.*;
 import com.healthcare.personal_health_monitoring.repository.AdminRepository;
-import com.healthcare.personal_health_monitoring.repository.DoctorRepository;
+// import com.healthcare.personal_health_monitoring.repository.DoctorRepository;
 import com.healthcare.personal_health_monitoring.repository.IdSequenceRepository;
 import com.healthcare.personal_health_monitoring.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,21 +21,21 @@ public class DataInitializer implements CommandLineRunner {
     private final UserRepository userRepository;
     private final AdminRepository adminRepository;
     private final PasswordEncoder passwordEncoder;
-    private final DoctorRepository doctorRepository;
+    // private final DoctorRepository doctorRepository;
 
     @Override
     @Transactional
     public void run(String... args) {
 
-        //ADMIN CREATION
+        // ADMIN CREATION
         User adminUser = userRepository.findByEmail("admin@healthcare.com").orElse(null);
 
         if (adminUser == null) {
 
             User admin = new User();
-            //admin.setFullName("System Admin");
+            // admin.setFullName("System Admin");
             admin.setEmail("admin@healthcare.com");
-           // admin.setNic("ADMIN001");
+            // admin.setNic("ADMIN001");
             admin.setPassword(passwordEncoder.encode("admin123"));
             admin.setRole(UserRole.ADMIN);
             admin.setEmailVerified(true);
@@ -51,23 +51,23 @@ public class DataInitializer implements CommandLineRunner {
             adminRepository.save(adminProfile);
         }
 
-        //  DOCTOR CREATION
-//        if (userRepository.findByEmail("doctor@healthcare.com").isEmpty()) {
-//
-//
-//
-//            Doctor doctor = new Doctor();
-//            doctor.setFullName("Dr. John Silva");
-//            doctor.setEmail("doctor@healthcare.com");
-//            doctor.setNic("DOC001");
-//            doctor.setPass(passwordEncoder.encode("doctor123"));
-//            doctor.setRole(UserRole.DOCTOR);
-//
-//            //doctor.setOtpGeneratedAt(LocalDateTime.now());
-//            doctor.setEnabled(true); // Enabled manually for testing
-//
-//            doctorRepository.save(doctor);
-//        }
+        // DOCTOR CREATION
+        // if (userRepository.findByEmail("doctor@healthcare.com").isEmpty()) {
+        //
+        //
+        //
+        // Doctor doctor = new Doctor();
+        // doctor.setFullName("Dr. John Silva");
+        // doctor.setEmail("doctor@healthcare.com");
+        // doctor.setNic("DOC001");
+        // doctor.setPass(passwordEncoder.encode("doctor123"));
+        // doctor.setRole(UserRole.DOCTOR);
+        //
+        // //doctor.setOtpGeneratedAt(LocalDateTime.now());
+        // doctor.setEnabled(true); // Enabled manually for testing
+        //
+        // doctorRepository.save(doctor);
+        // }
     }
 
     @Bean
@@ -79,9 +79,6 @@ public class DataInitializer implements CommandLineRunner {
             repo.findById(SequenceType.DOCTOR)
                     .orElseGet(() -> repo.save(new IdSequence(SequenceType.DOCTOR, 1L)));
         };
-
-
-
 
     }
 

@@ -1,5 +1,8 @@
 package com.healthcare.personal_health_monitoring.entity;
 
+import com.healthcare.personal_health_monitoring.entity.converter.EncryptedStringConverter;
+import com.healthcare.personal_health_monitoring.util.SensitiveDataSupport;
+import jakarta.persistence.Convert;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -19,8 +22,12 @@ public class PendingRegistration {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Convert(converter = EncryptedStringConverter.class)
+    @Column(nullable = false, unique = true, length = 512)
     private String email;
+
+    @Column(name = "email_hash", unique = true, length = 64)
+    private String emailHash;
 
     @Column(nullable = false)
     private String passwordHash;
@@ -37,14 +44,23 @@ public class PendingRegistration {
     })
     private PersonName name = new PersonName();
 
-        @Column(name = "full_name", nullable = false)
+        @Convert(converter = EncryptedStringConverter.class)
+        @Column(name = "full_name", nullable = false, length = 512)
         private String fullName;
 
     @Column(nullable = false)
     private LocalDate dateOfBirth;
 
+    @Convert(converter = EncryptedStringConverter.class)
     private String phone;
+
+    @Convert(converter = EncryptedStringConverter.class)
     private String nic;
+
+    @Column(name = "nic_hash", length = 64)
+    private String nicHash;
+
+    @Convert(converter = EncryptedStringConverter.class)
     private String gender;
 
     private String specialization;
@@ -53,7 +69,8 @@ public class PendingRegistration {
     @Column(length = 1000)
     private String verificationDocUrl;
 
-    @Column(nullable = false)
+    @Convert(converter = EncryptedStringConverter.class)
+    @Column(nullable = false, length = 512)
     private String emailOtp;
 
     @Column(nullable = false)
@@ -112,5 +129,15 @@ public class PendingRegistration {
             name = new PersonName();
         }
         name.setLastName(lastName);
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+        this.emailHash = SensitiveDataSupport.blindIndex(email);
+    }
+
+    public void setNic(String nic) {
+        this.nic = nic;
+        this.nicHash = SensitiveDataSupport.blindIndex(nic);
     }
 }

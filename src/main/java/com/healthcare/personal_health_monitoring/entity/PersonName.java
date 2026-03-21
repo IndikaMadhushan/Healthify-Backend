@@ -1,6 +1,8 @@
 package com.healthcare.personal_health_monitoring.entity;
 
+import com.healthcare.personal_health_monitoring.entity.converter.EncryptedStringConverter;
 import com.healthcare.personal_health_monitoring.util.NameUtil;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
@@ -13,8 +15,13 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class PersonName {
 
+    @Convert(converter = EncryptedStringConverter.class)
     private String firstName;
+
+    @Convert(converter = EncryptedStringConverter.class)
     private String secondName;
+
+    @Convert(converter = EncryptedStringConverter.class)
     private String lastName;
 
     @Transient

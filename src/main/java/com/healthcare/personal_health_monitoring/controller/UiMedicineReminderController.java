@@ -2,7 +2,7 @@ package com.healthcare.personal_health_monitoring.controller;
 
 import com.healthcare.personal_health_monitoring.dto.UiMedicineReminderRequest;
 import com.healthcare.personal_health_monitoring.dto.UiMedicineReminderResponse;
-import com.healthcare.personal_health_monitoring.entity.User;
+// import com.healthcare.personal_health_monitoring.entity.User;
 import com.healthcare.personal_health_monitoring.security.CustomUserDetails;
 import com.healthcare.personal_health_monitoring.service.UiMedicineReminderService;
 import lombok.RequiredArgsConstructor;
@@ -46,4 +46,3 @@ public class UiMedicineReminderController {
         service.delete(id);
     }
 }
-

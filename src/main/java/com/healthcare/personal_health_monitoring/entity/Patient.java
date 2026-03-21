@@ -1,6 +1,9 @@
 package com.healthcare.personal_health_monitoring.entity;
 
+import com.healthcare.personal_health_monitoring.entity.converter.EncryptedStringConverter;
+import com.healthcare.personal_health_monitoring.util.SensitiveDataSupport;
 import jakarta.persistence.*;
+import jakarta.persistence.Convert;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -44,33 +47,45 @@ public class Patient {
     })
     private PersonName name = new PersonName();
 
-        @Column(name = "full_name", nullable = false)
+        @Convert(converter = EncryptedStringConverter.class)
+        @Column(name = "full_name", nullable = false, length = 512)
         private String fullName;
 
     @Column(name = "patient_code", unique = true, nullable = false)
     private String patientId;
 
+    @Convert(converter = EncryptedStringConverter.class)
     @Column(nullable = true, table = "patient_personal_details")
     private String nic;
 
+    @Column(name = "nic_hash", table = "patient_personal_details", length = 64)
+    private String nicHash;
+
+    @Convert(converter = EncryptedStringConverter.class)
     @Column(nullable = true, table = "patient_address_details")
     private String postalCode;
 
+    @Convert(converter = EncryptedStringConverter.class)
     @Column(nullable = true, table = "patient_personal_details")
     private String phone;
 
+    @Convert(converter = EncryptedStringConverter.class)
     @Column(nullable = true, table = "patient_personal_details")
     private String maritalStatus;
 
+    @Convert(converter = EncryptedStringConverter.class)
     @Column(nullable = true, table = "patient_personal_details")
     private String occupation;
 
+    @Convert(converter = EncryptedStringConverter.class)
     @Column(nullable = true, table = "patient_address_details")
     private String district;
 
-    @Column(nullable = true, table = "patient_address_details")
+    @Convert(converter = EncryptedStringConverter.class)
+    @Column(nullable = true, table = "patient_address_details", length = 1024)
     private String address;
 
+    @Convert(converter = EncryptedStringConverter.class)
     @Column(nullable = true, table = "patient_personal_details")
     private String nationality;
 
@@ -80,6 +95,7 @@ public class Patient {
     @Column(name = "age", nullable = false, table = "patient_personal_details")
     private Integer age;
 
+    @Convert(converter = EncryptedStringConverter.class)
     @Column(table = "patient_personal_details")
     private String gender;
 
@@ -89,6 +105,7 @@ public class Patient {
     @Column(table = "patient_personal_details")
     private Double weight;
 
+    @Convert(converter = EncryptedStringConverter.class)
     @Column(table = "patient_personal_details")
     private String bloodType;
 
@@ -197,6 +214,11 @@ public class Patient {
             name = new PersonName();
         }
         name.setLastName(lastName);
+    }
+
+    public void setNic(String nic) {
+        this.nic = nic;
+        this.nicHash = SensitiveDataSupport.blindIndex(nic);
     }
 
     public void setEmergencyContact(PatientEmergencyContact emergencyContact) {

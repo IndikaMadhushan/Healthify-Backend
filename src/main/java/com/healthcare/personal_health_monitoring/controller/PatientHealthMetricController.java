@@ -2,7 +2,7 @@ package com.healthcare.personal_health_monitoring.controller;
 
 import com.healthcare.personal_health_monitoring.dto.PatientHealthMetricResponse;
 import com.healthcare.personal_health_monitoring.entity.HealthMetricType;
-import com.healthcare.personal_health_monitoring.entity.PatientHealthMetric;
+// import com.healthcare.personal_health_monitoring.entity.PatientHealthMetric;
 import com.healthcare.personal_health_monitoring.service.PatientHealthMetricService;
 import com.healthcare.personal_health_monitoring.util.PatientHealthMetricMapper;
 import lombok.RequiredArgsConstructor;
@@ -23,21 +23,18 @@ public class PatientHealthMetricController {
             @RequestParam HealthMetricType metricType,
             @RequestParam Double value) {
 
-            //matric types
-            // BLOOD_SUGAR,
-            // BLOOD_PRESSURE_SYSTOLIC,
-            // BLOOD_PRESSURE_DIASTOLIC,
-            // WEIGHT,
-            // HEIGHT,
-            // HEART_RATE,
-            // TEMPERATURE,
-            // CHOLESTEROL
-
-            
+        // matric types
+        // BLOOD_SUGAR,
+        // BLOOD_PRESSURE_SYSTOLIC,
+        // BLOOD_PRESSURE_DIASTOLIC,
+        // WEIGHT,
+        // HEIGHT,
+        // HEART_RATE,
+        // TEMPERATURE,
+        // CHOLESTEROL
 
         return PatientHealthMetricMapper.toResponse(
-                metricService.addMetric(patientId, metricType, value)
-        );
+                metricService.addMetric(patientId, metricType, value));
     }
 
     @GetMapping("/{patientId}/graph")
@@ -51,4 +48,3 @@ public class PatientHealthMetricController {
                 .toList();
     }
 }
-

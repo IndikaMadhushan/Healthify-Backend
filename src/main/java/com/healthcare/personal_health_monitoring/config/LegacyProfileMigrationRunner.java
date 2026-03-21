@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.sql.Date;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+// import java.time.LocalDateTime;
 import java.time.Period;
 import java.sql.Timestamp;
 import java.util.List;
@@ -51,8 +51,7 @@ public class LegacyProfileMigrationRunner implements CommandLineRunner {
         log.info(
                 "Updated patient_health_metrics.metric_type to VARCHAR(64) for {} metric values: {}",
                 HealthMetricType.values().length,
-                java.util.Arrays.toString(HealthMetricType.values())
-        );
+                java.util.Arrays.toString(HealthMetricType.values()));
     }
 
     private void migratePatientData() {
@@ -65,10 +64,8 @@ public class LegacyProfileMigrationRunner implements CommandLineRunner {
                         "father_name", "father_dob", "father_alive", "father_cause_of_death", "father_diseases",
                         "mother_name", "mother_dob", "mother_alive", "mother_cause_of_death", "mother_diseases",
                         "primary_contact_name", "primary_contact_phone", "primary_contact_relationship",
-                        "secondary_contact_name", "secondary_contact_phone", "secondary_contact_relationship"
-                ),
-                List.of("id", "full_name")
-        );
+                        "secondary_contact_name", "secondary_contact_phone", "secondary_contact_relationship"),
+                List.of("id", "full_name"));
         if (rows.isEmpty()) {
             return;
         }
@@ -88,28 +85,28 @@ public class LegacyProfileMigrationRunner implements CommandLineRunner {
             Integer age = resolveAge(row.get("age"), dateOfBirth);
 
             jdbcTemplate.update("""
-                            INSERT INTO patient_personal_details
-                                (patient_id, first_name, second_name, last_name, nic, phone, marital_status,
-                                 occupation, nationality, date_of_birth, age, gender, height, weight,
-                                 blood_type, photo_url)
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                            ON DUPLICATE KEY UPDATE
-                                first_name = VALUES(first_name),
-                                second_name = VALUES(second_name),
-                                last_name = VALUES(last_name),
-                                nic = VALUES(nic),
-                                phone = VALUES(phone),
-                                marital_status = VALUES(marital_status),
-                                occupation = VALUES(occupation),
-                                nationality = VALUES(nationality),
-                                date_of_birth = VALUES(date_of_birth),
-                                age = VALUES(age),
-                                gender = VALUES(gender),
-                                height = VALUES(height),
-                                weight = VALUES(weight),
-                                blood_type = VALUES(blood_type),
-                                photo_url = VALUES(photo_url)
-                            """,
+                    INSERT INTO patient_personal_details
+                        (patient_id, first_name, second_name, last_name, nic, phone, marital_status,
+                         occupation, nationality, date_of_birth, age, gender, height, weight,
+                         blood_type, photo_url)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON DUPLICATE KEY UPDATE
+                        first_name = VALUES(first_name),
+                        second_name = VALUES(second_name),
+                        last_name = VALUES(last_name),
+                        nic = VALUES(nic),
+                        phone = VALUES(phone),
+                        marital_status = VALUES(marital_status),
+                        occupation = VALUES(occupation),
+                        nationality = VALUES(nationality),
+                        date_of_birth = VALUES(date_of_birth),
+                        age = VALUES(age),
+                        gender = VALUES(gender),
+                        height = VALUES(height),
+                        weight = VALUES(weight),
+                        blood_type = VALUES(blood_type),
+                        photo_url = VALUES(photo_url)
+                    """,
                     patientId,
                     parts.firstName(),
                     parts.secondName(),
@@ -125,41 +122,39 @@ public class LegacyProfileMigrationRunner implements CommandLineRunner {
                     row.get("height"),
                     row.get("weight"),
                     row.get("blood_type"),
-                    row.get("photo_url")
-            );
+                    row.get("photo_url"));
 
             jdbcTemplate.update("""
-                            INSERT INTO patient_address_details
-                                (patient_id, postal_code, district, address)
-                            VALUES (?, ?, ?, ?)
-                            ON DUPLICATE KEY UPDATE
-                                postal_code = VALUES(postal_code),
-                                district = VALUES(district),
-                                address = VALUES(address)
-                            """,
+                    INSERT INTO patient_address_details
+                        (patient_id, postal_code, district, address)
+                    VALUES (?, ?, ?, ?)
+                    ON DUPLICATE KEY UPDATE
+                        postal_code = VALUES(postal_code),
+                        district = VALUES(district),
+                        address = VALUES(address)
+                    """,
                     patientId,
                     row.get("postal_code"),
                     row.get("district"),
-                    row.get("address")
-            );
+                    row.get("address"));
 
             jdbcTemplate.update("""
-                            INSERT INTO patient_family_details
-                                (patient_id, father_name, father_dob, father_alive, father_cause_of_death, father_diseases,
-                                 mother_name, mother_dob, mother_alive, mother_cause_of_death, mother_diseases)
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                            ON DUPLICATE KEY UPDATE
-                                father_name = VALUES(father_name),
-                                father_dob = VALUES(father_dob),
-                                father_alive = VALUES(father_alive),
-                                father_cause_of_death = VALUES(father_cause_of_death),
-                                father_diseases = VALUES(father_diseases),
-                                mother_name = VALUES(mother_name),
-                                mother_dob = VALUES(mother_dob),
-                                mother_alive = VALUES(mother_alive),
-                                mother_cause_of_death = VALUES(mother_cause_of_death),
-                                mother_diseases = VALUES(mother_diseases)
-                            """,
+                    INSERT INTO patient_family_details
+                        (patient_id, father_name, father_dob, father_alive, father_cause_of_death, father_diseases,
+                         mother_name, mother_dob, mother_alive, mother_cause_of_death, mother_diseases)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON DUPLICATE KEY UPDATE
+                        father_name = VALUES(father_name),
+                        father_dob = VALUES(father_dob),
+                        father_alive = VALUES(father_alive),
+                        father_cause_of_death = VALUES(father_cause_of_death),
+                        father_diseases = VALUES(father_diseases),
+                        mother_name = VALUES(mother_name),
+                        mother_dob = VALUES(mother_dob),
+                        mother_alive = VALUES(mother_alive),
+                        mother_cause_of_death = VALUES(mother_cause_of_death),
+                        mother_diseases = VALUES(mother_diseases)
+                    """,
                     patientId,
                     row.get("father_name"),
                     row.get("father_dob"),
@@ -170,30 +165,28 @@ public class LegacyProfileMigrationRunner implements CommandLineRunner {
                     row.get("mother_dob"),
                     row.get("mother_alive"),
                     row.get("mother_cause_of_death"),
-                    row.get("mother_diseases")
-            );
+                    row.get("mother_diseases"));
 
             jdbcTemplate.update("""
-                            INSERT INTO patient_emergency_contacts
-                                (patient_id, primary_contact_name, primary_contact_phone, primary_contact_relationship,
-                                 secondary_contact_name, secondary_contact_phone, secondary_contact_relationship)
-                            VALUES (?, ?, ?, ?, ?, ?, ?)
-                            ON DUPLICATE KEY UPDATE
-                                primary_contact_name = VALUES(primary_contact_name),
-                                primary_contact_phone = VALUES(primary_contact_phone),
-                                primary_contact_relationship = VALUES(primary_contact_relationship),
-                                secondary_contact_name = VALUES(secondary_contact_name),
-                                secondary_contact_phone = VALUES(secondary_contact_phone),
-                                secondary_contact_relationship = VALUES(secondary_contact_relationship)
-                            """,
+                    INSERT INTO patient_emergency_contacts
+                        (patient_id, primary_contact_name, primary_contact_phone, primary_contact_relationship,
+                         secondary_contact_name, secondary_contact_phone, secondary_contact_relationship)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    ON DUPLICATE KEY UPDATE
+                        primary_contact_name = VALUES(primary_contact_name),
+                        primary_contact_phone = VALUES(primary_contact_phone),
+                        primary_contact_relationship = VALUES(primary_contact_relationship),
+                        secondary_contact_name = VALUES(secondary_contact_name),
+                        secondary_contact_phone = VALUES(secondary_contact_phone),
+                        secondary_contact_relationship = VALUES(secondary_contact_relationship)
+                    """,
                     patientId,
                     row.get("primary_contact_name"),
                     row.get("primary_contact_phone"),
                     row.get("primary_contact_relationship"),
                     row.get("secondary_contact_name"),
                     row.get("secondary_contact_phone"),
-                    row.get("secondary_contact_relationship")
-            );
+                    row.get("secondary_contact_relationship"));
 
             migratedCount++;
         }
@@ -201,8 +194,7 @@ public class LegacyProfileMigrationRunner implements CommandLineRunner {
         log.info(
                 "Migrated {} legacy patient records into normalized tables, skipped {} rows with missing or invalid date_of_birth",
                 migratedCount,
-                skippedCount
-        );
+                skippedCount);
     }
 
     private void normalizeLegacyProfileSchemas() {
@@ -237,8 +229,7 @@ public class LegacyProfileMigrationRunner implements CommandLineRunner {
                 "primary_contact_relationship",
                 "secondary_contact_name",
                 "secondary_contact_phone",
-                "secondary_contact_relationship"
-        ));
+                "secondary_contact_relationship"));
 
         relaxLegacyColumns("doctors", List.of(
                 "nic",
@@ -252,8 +243,7 @@ public class LegacyProfileMigrationRunner implements CommandLineRunner {
                 "date_of_birth",
                 "age",
                 "photo_url",
-                "joined_date"
-        ));
+                "joined_date"));
     }
 
     private void migrateDoctorData() {
@@ -262,10 +252,8 @@ public class LegacyProfileMigrationRunner implements CommandLineRunner {
                 List.of(
                         "id", "full_name", "gender", "hospital", "nic", "postal_code", "verification_doc_url",
                         "phone", "district", "province", "country", "specialization", "license_number",
-                        "date_of_birth", "age", "photo_url", "joined_date"
-                ),
-                List.of("id", "full_name")
-        );
+                        "date_of_birth", "age", "photo_url", "joined_date"),
+                List.of("id", "full_name"));
         if (rows.isEmpty()) {
             return;
         }
@@ -277,25 +265,25 @@ public class LegacyProfileMigrationRunner implements CommandLineRunner {
             Integer age = resolveAge(row.get("age"), row.get("date_of_birth"));
 
             jdbcTemplate.update("""
-                            INSERT INTO doctor_personal_details
-                                (doctor_id, first_name, second_name, last_name, gender, nic, postal_code,
-                                 phone, district, province, country, date_of_birth, age, photo_url)
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                            ON DUPLICATE KEY UPDATE
-                                first_name = VALUES(first_name),
-                                second_name = VALUES(second_name),
-                                last_name = VALUES(last_name),
-                                gender = VALUES(gender),
-                                nic = VALUES(nic),
-                                postal_code = VALUES(postal_code),
-                                phone = VALUES(phone),
-                                district = VALUES(district),
-                                province = VALUES(province),
-                                country = VALUES(country),
-                                date_of_birth = VALUES(date_of_birth),
-                                age = VALUES(age),
-                                photo_url = VALUES(photo_url)
-                            """,
+                    INSERT INTO doctor_personal_details
+                        (doctor_id, first_name, second_name, last_name, gender, nic, postal_code,
+                         phone, district, province, country, date_of_birth, age, photo_url)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON DUPLICATE KEY UPDATE
+                        first_name = VALUES(first_name),
+                        second_name = VALUES(second_name),
+                        last_name = VALUES(last_name),
+                        gender = VALUES(gender),
+                        nic = VALUES(nic),
+                        postal_code = VALUES(postal_code),
+                        phone = VALUES(phone),
+                        district = VALUES(district),
+                        province = VALUES(province),
+                        country = VALUES(country),
+                        date_of_birth = VALUES(date_of_birth),
+                        age = VALUES(age),
+                        photo_url = VALUES(photo_url)
+                    """,
                     doctorId,
                     parts.firstName(),
                     parts.secondName(),
@@ -308,33 +296,30 @@ public class LegacyProfileMigrationRunner implements CommandLineRunner {
                     row.get("province"),
                     row.get("country"),
                     row.get("date_of_birth"),
-                        age,
-                    row.get("photo_url")
-            );
+                    age,
+                    row.get("photo_url"));
 
-                String licenseNumber = resolveNonEmptyString(
+            String licenseNumber = resolveNonEmptyString(
                     row.get("license_number"),
-                    "UNKNOWN-" + doctorId
-                );
+                    "UNKNOWN-" + doctorId);
 
-                jdbcTemplate.update("""
-                            INSERT INTO doctor_professional_details
-                                (doctor_id, hospital, specialization, license_number, verification_doc_url, joined_date)
-                            VALUES (?, ?, ?, ?, ?, ?)
-                            ON DUPLICATE KEY UPDATE
-                                hospital = VALUES(hospital),
-                                specialization = VALUES(specialization),
-                                license_number = VALUES(license_number),
-                                verification_doc_url = VALUES(verification_doc_url),
-                                joined_date = VALUES(joined_date)
-                            """,
+            jdbcTemplate.update("""
+                    INSERT INTO doctor_professional_details
+                        (doctor_id, hospital, specialization, license_number, verification_doc_url, joined_date)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    ON DUPLICATE KEY UPDATE
+                        hospital = VALUES(hospital),
+                        specialization = VALUES(specialization),
+                        license_number = VALUES(license_number),
+                        verification_doc_url = VALUES(verification_doc_url),
+                        joined_date = VALUES(joined_date)
+                    """,
                     doctorId,
                     row.get("hospital"),
                     row.get("specialization"),
                     licenseNumber,
                     row.get("verification_doc_url"),
-                    row.get("joined_date")
-            );
+                    row.get("joined_date"));
         }
 
         log.info("Migrated {} legacy doctor records into normalized tables", rows.size());
@@ -344,8 +329,7 @@ public class LegacyProfileMigrationRunner implements CommandLineRunner {
         List<Map<String, Object>> rows = queryLegacyRows(
                 "pending_registrations",
                 List.of("id", "full_name", "first_name", "second_name", "last_name"),
-                List.of("id", "full_name")
-        );
+                List.of("id", "full_name"));
         if (rows.isEmpty()) {
             return;
         }
@@ -359,15 +343,14 @@ public class LegacyProfileMigrationRunner implements CommandLineRunner {
 
             NameUtil.NameParts parts = NameUtil.split((String) row.get("full_name"));
             jdbcTemplate.update("""
-                            UPDATE pending_registrations
-                            SET first_name = ?, second_name = ?, last_name = ?
-                            WHERE id = ?
-                            """,
+                    UPDATE pending_registrations
+                    SET first_name = ?, second_name = ?, last_name = ?
+                    WHERE id = ?
+                    """,
                     parts.firstName(),
                     parts.secondName(),
                     parts.lastName(),
-                    row.get("id")
-            );
+                    row.get("id"));
         }
 
         log.info("Migrated legacy pending registration names");
@@ -386,8 +369,7 @@ public class LegacyProfileMigrationRunner implements CommandLineRunner {
                     "ALTER TABLE `%s` MODIFY COLUMN `%s` %s NULL",
                     tableName,
                     columnName,
-                    columnType
-            ));
+                    columnType));
             relaxedCount++;
         }
 
@@ -396,7 +378,8 @@ public class LegacyProfileMigrationRunner implements CommandLineRunner {
         }
     }
 
-    private List<Map<String, Object>> queryLegacyRows(String tableName, List<String> requestedColumns, List<String> requiredColumns) {
+    private List<Map<String, Object>> queryLegacyRows(String tableName, List<String> requestedColumns,
+            List<String> requiredColumns) {
         List<String> existingColumns = requestedColumns.stream()
                 .filter(columnName -> columnExists(tableName, columnName))
                 .toList();
@@ -472,7 +455,8 @@ public class LegacyProfileMigrationRunner implements CommandLineRunner {
                 return dateOfBirth;
             }
         } catch (Exception ex) {
-            log.warn("Skipping legacy patient {} during profile migration because date_of_birth is invalid: {}", patientId, dobValue);
+            log.warn("Skipping legacy patient {} during profile migration because date_of_birth is invalid: {}",
+                    patientId, dobValue);
             return null;
         }
 
