@@ -3,7 +3,7 @@
 Backend service for the **Healthify / Personal Health Monitoring** platform.  
 It provides REST APIs for user/doctor workflows, authentication & authorization, file handling, and integrations (email, storage, chatbot), backed by a MySQL database.
 
-> Repo: `IndikaMadhushan/Healthify-Backend`
+
 
 ---
 
@@ -63,17 +63,6 @@ This project is a **Spring Boot (Java 17)** backend that powers a health monitor
 - **Supabase storage configuration** (profile images, doctor verification docs, medical files)
 - **Scheduling enabled** (`@EnableScheduling`)
 - **Dockerized deployment** (backend + mysql)
-
----
-
-## My Role
-
-**Team Leader / Backend Lead**
-
-- Led the backend architecture and implementation of the majority of server-side functionality.
-- Designed and implemented core API structure, security (JWT + Spring Security), persistence layer (JPA), and integrations.
-- Coordinated the backend development workflow and ensured the system was deployable using Docker.
-
 
 
 ---
